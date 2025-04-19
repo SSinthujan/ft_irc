@@ -1,0 +1,82 @@
+## To implement
+
+
+
+< < CAP LS
+< < NICK GORG2
+< < USER dakojic dakojic irc.freenode.net :Darko Kojic
+> > :*.freenode.net NOTICE * :*** Looking up your ident...
+> > :*.freenode.net NOTICE * :*** Looking up your hostname...
+> > :*.freenode.net CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl server-time setname userhost-in-names 
+< < CAP REQ :multi-prefix
+> > PING :Es]tibJFIx
+< < PONG :Es]tibJFIx
+> > :*.freenode.net CAP GORG2 ACK :multi-prefix
+< < CAP END
+> > :*.freenode.net NOTICE GORG2 :*** Could not resolve your hostname: Nameserver failure; using your IP address (62.210.34.241) instead.
+> > :*.freenode.net NOTICE GORG2 :*** Ident lookup timed out, using ~dakojic instead.
+> > :*.freenode.net 001 GORG2 :Welcome to the freenode IRC Network GORG2!~dakojic@62.210.34.241
+< < MODE GORG2 +i
+
+
+Starting the connection with the client
+< < CAP LS 
+>> :*.freenode.net CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl server-time setname userhost-in-names 
+
+< < PING :STR 
+> > PONG :STR
+
+< < CAP REQ :multi-prefix
+> > CAP * NAK :multi-prefix
+
+
+
+/join #channel
+
+JOIN CHANNEL :
+Format      :GORG2!~dakojic@freenode-rb6.tkf.6vib9m.IP JOIN :#essai
+            A voir ce que tout ca veut dire ou plutot l'ordre'
+/join INVITE_ONLY_CHANNEL/
+    :*.freenode.net 473 NAME #CHANNEL :Cannot join channel (invite only)
+
+
+MODE #essai
+        :   :*.freenode.net 324 GORG2 #essai :+nt
+            Print le mode du channel ?
+
+WHO #essai
+        : list tous les membres sur le channel
+
+
+
+
+IRSSI envoi les commandes sans 
+'
+Donc toute les commandes se retrouvent en tant que
+PRIVMSG #channel
+PRIVMSG name 
+JOIN #channel
+KICK NAME
+etc'
+
+/invite name
+    INVITE NAME #CHANNEL
+/invite UNEXISTING_NAME/
+    :*.freenode.net 401 NAME INVITED_NAME :No such nick
+
+/topic text
+    TOPIC #CHANNEL :TEXT
+/topic -delete [#CHANNEL]
+    TOPIC #ACTIVE_CHANNEL :
+    if /topic -delete on channel where you dont have the rights to do so/
+        >> :*.freenode.net 482 NAME #CHANNEL :You do not have access to change the topic on this channel
+
+
+/kick NAME 
+    KICK #CHANNEL NAME : [REASON]
+/kick UNEXISTING_NAME/
+    :*.freenode.net 401 NAME UNEXISTING_NAME :No such nick
+
+/mode #CHANNEL [MODE] NAME
+
+/if no rights to do so : 482 NAME #CHANNEL :You must have channel op access or above to unset channel mode o/
