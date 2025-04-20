@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/11 16:47:32 by dakojic          ###   ########.fr       */
+/*   Updated: 2025/04/21 01:23:43 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,13 +32,14 @@ class Channel
 
     public:
         Channel(std::string name){channelName = name; maxUsers = -1;};
-        std::string GetChannelName(){return channelName;};
 
         //Topic
         std::string GetTopic(){return topic;};
         void SetTopic(std::string s){topic = s;};
         
-        void AddMember(std::string);
+        void AddMember(std::string &);
+        void RemoveMember(std::string &);
+        void SetMaxUsers(int n) { maxUsers = n; };
         
         //password
         void SetPassword(std::string s){password = s;};
@@ -50,10 +51,11 @@ class Channel
         bool CheckInviteOnly(){return inviteOnly;};
         //Getters
         std::string GetChannelName() const {return channelName;};
-        // std::string GetTopic(){return topic;};
+        void SetChannelName(std::string &s) { channelName = s; };
         // void GetRoles(std::string level);
         // void WhosOnline();
         int CheckRole(std::string name);
+        bool IsFull() const;
 };
 
 #endif
