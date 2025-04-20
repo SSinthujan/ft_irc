@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/20 18:37:57 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/20 23:11:49 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <cstdlib> 
+#include <map>
 
 class Client;
 class Channel;
@@ -37,7 +38,7 @@ class Server
         int Port;
         int ServerSocketFD;
         static bool Signal;
-        std::vector<Client> clients;
+        std::map<int, Client> clients;
         std::vector<struct pollfd> fds;
         std::vector<Channel> channels;
         std::string serverPassword;

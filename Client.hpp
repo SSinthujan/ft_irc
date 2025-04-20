@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 17:11:54 by dakojic          ###   ########.fr       */
+/*   Updated: 2025/04/20 23:23:08 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class Client
         std::string GetNickname(){return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
+        bool IsRegistered() const { return registered; };
 };
 
 #endif

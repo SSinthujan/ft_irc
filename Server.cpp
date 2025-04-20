@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/20 18:37:01 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/20 23:21:48 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,22 +50,17 @@ Client* Server::GetClient(int fd)
 
 void Server::CleanClients(int fd)
 {
-    for(size_t i = 0; i < fds.size(); i++)
+    for (size_t i = 0; i < fds.size(); i++)
     {
-        if(fds[i].fd == fd)
+        if (fds[i].fd == fd)
         {
             fds.erase(fds.begin() + i);
-            break ;
+            break;
         }
     }
-    for(size_t i = 0; i < clients.size(); i++)
-    {
-        if(clients[i].GetFd() == fd)
-        {
-            clients.erase(clients.begin() + i);
-            break ;
-        }
-    }
+
+    // Supprimer le client dans la map
+    clients.erase(fd);
 };
 
 void Server::CloseFds()
@@ -219,7 +214,7 @@ void Server::ReceiveNewData(int fd)
     std::vector<std::string> split;
     if(bytes <= 0)
     {
-        std::cout << "Client <" << fd<<"> disconnected" << std::endl;
+        std::cout << "Client <" << fd << "> disconnected" << std::endl;
         CleanClients(fd);
         close(fd);
     }
@@ -237,13 +232,13 @@ void Server::ReceiveNewData(int fd)
 
 void Server::AcceptNewClient()
 {
-    Client newClient;
     struct sockaddr_in clientAdress;
     struct pollfd newFd;
     socklen_t len = sizeof(clientAdress);
 
     int incommingfd = accept(ServerSocketFD, (sockaddr *)&clientAdress, &len);
     std::cout<<"INC FD " << incommingfd<<std::endl;
+
     if(incommingfd == -1)
     {
         std::cout << "Accept() failed" << std::endl;
@@ -257,11 +252,12 @@ void Server::AcceptNewClient()
     newFd.fd = incommingfd;
     newFd.events = POLLIN;
     newFd.revents = 0;
+    fds.push_back(newFd);
     
+    Client newClient;
     newClient.SetFd(incommingfd);
     newClient.SetIpAdress(inet_ntoa(clientAdress.sin_addr));
-    clients.push_back(newClient);
-    fds.push_back(newFd);
+    clients[incommingfd] = newClient;
 
     std::cout << "Client <" << incommingfd << "> connected" << std::endl;
 };
@@ -279,7 +275,7 @@ void Server::ServerSocket()
     ServerSocketFD = socket(AF_INET, SOCK_STREAM, 0);
     if(ServerSocketFD == -1)
         throw(std::runtime_error("socket() failed"));
-    if(setsockopt(ServerSocketFD, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == 1)
+    if(setsockopt(ServerSocketFD, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1)
         throw(std::runtime_error("setsockopt() failed to set option SO_REUSEADDR"));
     if(bind(ServerSocketFD, (struct sockaddr *) &address, sizeof(address)) == -1)
         throw(std::runtime_error("failed to bind() socket"));
@@ -296,7 +292,7 @@ void Server::ServerInit()
     this->Port = 4444;
     ServerSocket();
     std::cout<<"Server <" << ServerSocketFD << "> connected" << std::endl;
-    std::cout<<"Waiting for incomming connections..."<<std::endl;
+    std::cout<<"Waiting for incoming connections..."<<std::endl;
     while(Server::Signal == false)
     {
         if((poll(&fds[0], fds.size(), -1) == -1) && Server::Signal == false)
