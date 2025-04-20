@@ -138,7 +138,7 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else
     {
-        std::cout <<"SOMETHING ELSE ??? " << split[0] << std::endl;
+        std::cout <<"MSG = " << split[0] << std::endl;
         return ;
     }
 };
