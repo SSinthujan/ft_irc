@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 16:04:38 by dakojic          ###   ########.fr       */
+/*   Updated: 2025/04/20 18:37:57 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <cstdlib> 
+
 class Client;
 class Channel;
 
@@ -39,10 +41,14 @@ class Server
         std::vector<struct pollfd> fds;
         std::vector<Channel> channels;
         std::string serverPassword;
+
+        std::string _portStr;
+        std::string _password;
     
     public:
         //Sever Starter
-        Server(){ServerSocketFD = -1;};
+        Server();
+        void inputCheck(int ac, char **av);
         void ServerSocket();
         void ServerInit();
         

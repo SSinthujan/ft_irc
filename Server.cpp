@@ -3,14 +3,40 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 17:23:40 by dakojic          ###   ########.fr       */
+/*   Updated: 2025/04/20 18:37:01 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+
+Server::Server()
+{
+    ServerSocketFD = -1;
+}
+
+void Server::inputCheck(int ac, char **av)
+{
+
+    if (ac != 3)
+        throw (std::runtime_error("Wrong args : ./ircserv <port> <password>"));
+
+    _portStr = av[1];
+    _password = av[2];
+
+    char* end = NULL;
+    long port = strtol(_portStr.c_str(), &end, 10);
+
+    if (*end != '\0')
+        throw(std::runtime_error("Port must be a valid number (digits only)"));
+
+    if (port < 1024 || port > 65535)
+        throw(std::runtime_error("Port must be between 1024 and 65535"));
+
+    Port = static_cast<int>(port);
+}
 
 Client* Server::GetClient(int fd)
 {
