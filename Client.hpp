@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/20 23:23:08 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/21 22:46:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,10 @@ class Client
         std::string GetNickname(){return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
-        bool IsRegistered() const { return registered; };
+        bool IsRegistered() const { return registered; };\
+        std::string GetUsername(){return username;};
+        std::string GetIpAddress(){return IpAddress;};
+
 };
 
 #endif

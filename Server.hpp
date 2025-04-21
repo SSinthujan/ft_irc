@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/20 23:11:49 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/21 22:51:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ class Server
 
         //Close
         void CloseFds();
-        void CleanClients(int fds);    
+        void CleanClients(int fds);
 
         //Else
         std::vector<std::string> SplitTmpBuffer(std::string);

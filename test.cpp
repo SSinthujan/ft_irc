@@ -85,6 +85,7 @@ Client* Server::GetClient(int fd)
     }
     return NULL;
 }
+
 void Server::CleanClients(int fd)
 {
     for(size_t i = 0; i < fds.size(); i++)
