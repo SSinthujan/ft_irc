@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 10:36:18 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 17:23:40 by dakojic          ###   ########.fr       */
+/*   Created: 2025/04/11 10:36:18 by ssitchsa           #+#    #+#             */
+/*   Updated: 2025/04/14 17:23:40 by ssitchsa          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,42 +104,83 @@ void Server::ParseLaunch(std::string &str, int fd)
     Client *tmp = GetClient(fd);
     if(sep != std::string::npos)
         str = str.substr(sep);
-    if(split[0] == "CAP" && split[1] == "LS")
+    if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
     {
         std::cout <<"FD : " << fd << std::endl;
-        std::string response = ": CAP * LS :multi-prefix";
+        std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
         send(tmp->GetFd(), response.c_str(), response.length(), 0);
     }
-    else if(split[0] == "CAP" && split[1] == "REQ")
+    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
     {
-        std::string response = ":IRC-REQ CAP" +  tmp->GetNickname() + " ACK :multi-prefix";
+        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
         send(tmp->GetFd(), response.c_str(), response.length(), 0); 
     }
-    else if(split[0] == "NICK")
+    else if(split[0] == "NICK" && split.size() > 1)
     {
-        tmp->SetNickname(str);
+        std::string oldNick = tmp->GetNickname();
+        tmp->SetNickname(split[1]);
+        
+        // Envoi d'une réponse de bienvenue si le client a aussi envoyé USER
+        if(!tmp->GetUsername().empty()) {
+            // Message 001 (RPL_WELCOME)
+            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
+            send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
+            
+            // Message 002 (RPL_YOURHOST)
+            std::string yourHost = ":irc.server 002 " + tmp->GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
+            send(tmp->GetFd(), yourHost.c_str(), yourHost.length(), 0);
+            
+            // Message 003 (RPL_CREATED)
+            std::string created = ":irc.server 003 " + tmp->GetNickname() + " :This server was created today\r\n";
+            send(tmp->GetFd(), created.c_str(), created.length(), 0);
+            
+            // Message 004 (RPL_MYINFO)
+            std::string myInfo = ":irc.server 004 " + tmp->GetNickname() + " irc.server 1.0 o o\r\n";
+            send(tmp->GetFd(), myInfo.c_str(), myInfo.length(), 0);
+            
+            // Message 375 (RPL_MOTDSTART)
+            std::string motdStart = ":irc.server 375 " + tmp->GetNickname() + " :- irc.server Message of the day - \r\n";
+            send(tmp->GetFd(), motdStart.c_str(), motdStart.length(), 0);
+            
+            // Message 372 (RPL_MOTD)
+            std::string motd = ":irc.server 372 " + tmp->GetNickname() + " :- Welcome to the IRC server\r\n";
+            send(tmp->GetFd(), motd.c_str(), motd.length(), 0);
+            
+            // Message 376 (RPL_ENDOFMOTD)
+            std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
+            send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
+        }
     }
-    else if(split[0] == "USER")
+    else if(split[0] == "USER" && split.size() > 4)
     {
         tmp->SetUser(split);
-    }
-    else if(split[0] == "PING")
-    {
-        std::string response = "PONG " + str;
-        send(tmp->GetFd(), response.c_str(), response.length(), 0);
         
+        // Si le nick est déjà défini, envoyer les messages de bienvenue
+        if(!tmp->GetNickname().empty()) {
+            // Envoyer les mêmes messages que dans la section NICK
+            // [Code des messages de bienvenue ici]
+        }
+    }
+    else if(split[0] == "PING" && split.size() > 1)
+    {
+        std::string response = "PONG :" + split[1] + "\r\n";
+        send(tmp->GetFd(), response.c_str(), response.length(), 0);
     }
     else if(split[0] == "PASS")
     {
-        if(split[1] != "-n")
+        if(split.size() > 1 && split[1] != this->serverPassword)
         {
-            std::cout << "WRONG PASSWORD" << std::endl;
+            std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
+            send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
         }
+    }
+    else if(split[0] == "JOIN" && split.size() > 1)
+    {
+        Join(split, fd);
     }
     else
     {
-        std::cout <<"MSG = " << split[0] << std::endl;
-        return ;
+        std::cout << "Unknown command: " << split[0] << std::endl;
     }
 };
 
@@ -157,6 +198,7 @@ std::vector<std::string> SplitByComma(std::string str)
     split.push_back(str.substr(start));
     return split;
 };
+
 bool Server::CheckIfChannelExists(std::string str)
 {
     for (std::vector<Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it)
@@ -166,6 +208,7 @@ bool Server::CheckIfChannelExists(std::string str)
     }
     return false;
 };
+
 void Server::Join(std::vector<std::string> str, int fd)
 {
     std::vector<std::string> channelsToJoin;
@@ -184,6 +227,7 @@ void Server::Join(std::vector<std::string> str, int fd)
             std::cout<<"WE CREATING WITH "<<  fd<< std::endl;
     }
 };
+
 void Server::ReceiveNewData(int fd)
 {
     char buff[1024];

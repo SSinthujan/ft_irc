@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 10:36:10 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 17:11:54 by dakojic          ###   ########.fr       */
+/*   Created: 2025/04/11 10:36:10 by ssitchsa           #+#    #+#             */
+/*   Updated: 2025/04/14 17:11:54 by ssitchsa          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ class Client
         std::string GetNickname(){return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
+        std::string GetUsername(){return username;};
+        std::string GetIpAddress(){return IpAddress;}
 };
 
 #endif
