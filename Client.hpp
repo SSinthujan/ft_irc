@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 10:36:10 by ssitchsa           #+#    #+#             */
-/*   Updated: 2025/04/14 17:11:54 by ssitchsa          ###   ########.fr       */
+/*   Created: 2025/04/11 10:36:10 by ssitchsa          #+#    #+#             */
+/*   Updated: 2025/04/21 22:46:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,10 @@ class Client
         std::string GetNickname(){return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
+        bool IsRegistered() const { return registered; };\
         std::string GetUsername(){return username;};
-        std::string GetIpAddress(){return IpAddress;}
+        std::string GetIpAddress(){return IpAddress;};
+
 };
 
 #endif

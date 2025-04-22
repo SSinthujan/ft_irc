@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 10:36:14 by ssitchsa           #+#    #+#             */
-/*   Updated: 2025/04/14 16:04:38 by ssitchsa          ###   ########.fr       */
+/*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
+/*   Updated: 2025/04/21 22:51:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@
 #include <fcntl.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <cstdlib> 
+#include <map>
+
 class Client;
 class Channel;
 
@@ -35,14 +38,18 @@ class Server
         int Port;
         int ServerSocketFD;
         static bool Signal;
-        std::vector<Client> clients;
+        std::map<int, Client> clients;
         std::vector<struct pollfd> fds;
         std::vector<Channel> channels;
         std::string serverPassword;
+
+        std::string _portStr;
+        std::string _password;
     
     public:
         //Sever Starter
-        Server(){ServerSocketFD = -1;};
+        Server();
+        void inputCheck(int ac, char **av);
         void ServerSocket();
         void ServerInit();
         
@@ -64,7 +71,7 @@ class Server
 
         //Close
         void CloseFds();
-        void CleanClients(int fds);    
+        void CleanClients(int fds);
 
         //Else
         std::vector<std::string> SplitTmpBuffer(std::string);

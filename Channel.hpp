@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 12:08:51 by ssitchsa           #+#    #+#             */
-/*   Updated: 2025/04/11 16:47:32 by ssitchsa          ###   ########.fr       */
+/*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
+/*   Updated: 2025/04/21 17:15:56 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 
 class Channel
@@ -26,34 +27,54 @@ class Channel
         int maxUsers;
         std::map<std::string, int> roles;
         std::map<std::string, int> members;
+        std::vector<std::string> invitedUsers;
         std::string password;
+        bool topicRestricted;
+        bool keyEnabled;
         bool inviteOnly;
         Channel();
 
     public:
-        Channel(std::string name){channelName = name; maxUsers = -1;};
-        std::string GetChannelName(){return channelName;};
+            Channel(std::string name){channelName = name; maxUsers = -1;};
 
-        //Topic
-        std::string GetTopic(){return topic;};
-        void SetTopic(std::string s){topic = s;};
-        
-        void AddMember(std::string);
-        
-        //password
-        void SetPassword(std::string s){password = s;};
-        std::string GetPassword(){return password;};
-        
-        //invite only
-        void SetInviteOnly(){inviteOnly = true;};
-        void RemoveInviteOnly(){inviteOnly = false;};
-        bool CheckInviteOnly(){return inviteOnly;};
-        //Getters
-        std::string GetChannelName() const {return channelName;};
-        // std::string GetTopic(){return topic;};
-        // void GetRoles(std::string level);
-        // void WhosOnline();
-        int CheckRole(std::string name);
+           // === Informations générales
+           std::string GetChannelName() const { return channelName; };
+           void SetChannelName(std::string &s) { channelName = s; };
+   
+           // === Gestion du topic
+           std::string GetTopic() { return topic; };
+           void SetTopic(std::string s) { topic = s; };
+           void SetTopicRestricted(bool b) { topicRestricted = b; };
+           bool IsTopicRestricted() const { return topicRestricted; };
+   
+           // === Gestion des membres
+           void AddMember(std::string &nickname);
+           void RemoveMember(std::string &nickname);
+           bool HasMember(std::string const &nickname) const;
+           std::vector<std::string> GetMembers() const;
+           bool IsFull() const;
+           void SetMaxUsers(int n) { maxUsers = n; };
+   
+           // === Gestion des opérateurs
+           int CheckRole(std::string name);
+           void SetOperator(std::string const &nickname);
+           void RemoveOperator(std::string const &nickname);
+           bool IsOperator(std::string const &nickname) const;
+   
+           // === Mode +i : gestion du mode sur invitation 
+           void SetInviteOnly() { inviteOnly = true; };
+           void RemoveInviteOnly() { inviteOnly = false; };
+           bool CheckInviteOnly() { return inviteOnly; };
+           void AddInvite(std::string const &nickname);
+           bool IsInvited(std::string const &nickname) const;
+           void RemoveInvite(std::string const &nickname);
+   
+           // === Mode +k : gestion de la clé (mot de passe)
+           void SetPassword(std::string s) { password = s; };
+           std::string GetPassword() { return password; };
+           void EnableKey(std::string const &pass);
+           void DisableKey();
+           bool IsKeyEnabled() const { return keyEnabled; };
 };
 
 #endif

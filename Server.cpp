@@ -3,15 +3,40 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ssitchsa <ssitchsa@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/04/11 10:36:18 by ssitchsa           #+#    #+#             */
-/*   Updated: 2025/04/14 17:23:40 by ssitchsa          ###   ########.fr       */
+/*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
+/*   Updated: 2025/04/21 22:56:51 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
+Server::Server()
+{
+    ServerSocketFD = -1;
+}
+
+void Server::inputCheck(int ac, char **av)
+{
+
+    if (ac != 3)
+        throw (std::runtime_error("Wrong args : ./ircserv <port> <password>"));
+
+    _portStr = av[1];
+    _password = av[2];
+
+    char* end = NULL;
+    long port = strtol(_portStr.c_str(), &end, 10);
+
+    if (*end != '\0')
+        throw(std::runtime_error("Port must be a valid number (digits only)"));
+
+    if (port < 1024 || port > 65535)
+        throw(std::runtime_error("Port must be between 1024 and 65535"));
+
+    Port = static_cast<int>(port);
+}
 Client* Server::GetClient(int fd)
 {
     for(size_t i = 0; i < this->clients.size(); i++)
@@ -24,23 +49,20 @@ Client* Server::GetClient(int fd)
 
 void Server::CleanClients(int fd)
 {
-    for(size_t i = 0; i < fds.size(); i++)
+    /* 1. Remove the pollfd that matches fd */
+    for (std::vector<struct pollfd>::iterator it = fds.begin();
+         it != fds.end(); ++it)
     {
-        if(fds[i].fd == fd)
+        if (it->fd == fd)
         {
-            fds.erase(fds.begin() + i);
-            break ;
+            fds.erase(it);          // erase → O(N) but only once
+            break;
         }
     }
-    for(size_t i = 0; i < clients.size(); i++)
-    {
-        if(clients[i].GetFd() == fd)
-        {
-            clients.erase(clients.begin() + i);
-            break ;
-        }
-    }
-};
+
+    /* 2. Remove the Client whose key is fd (O(log N)) */
+    clients.erase(fd);              // does nothing if fd not present
+}
 
 void Server::CloseFds()
 {
@@ -275,11 +297,11 @@ void Server::AcceptNewClient()
     newFd.fd = incommingfd;
     newFd.events = POLLIN;
     newFd.revents = 0;
+    fds.push_back(newFd);
     
     newClient.SetFd(incommingfd);
     newClient.SetIpAdress(inet_ntoa(clientAdress.sin_addr));
-    clients.push_back(newClient);
-    fds.push_back(newFd);
+    clients[incommingfd] = newClient;
 
     std::cout << "Client <" << incommingfd << "> connected" << std::endl;
 };
