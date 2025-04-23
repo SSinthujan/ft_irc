@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 01:26:50 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 17:29:52 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ class Server
 
         //Channel
         bool CheckIfChannelExists(std::string);
+        void HandleMode(Client *client, const std::vector<std::string> &split, int fd);
 
         //Signal
         static void SignalHadler(int signum);
@@ -68,7 +69,7 @@ class Server
         //Getters
         Client* GetClient(int fd);
         std::string GetPassword(){return serverPassword;};
-
+        Channel* GetChannel(const std::string& name);
         //Close
         void CloseFds();
         void CleanClients(int fds);

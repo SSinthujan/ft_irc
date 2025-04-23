@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 01:39:06 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 17:28:54 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ class Client
         std::string GetUsername(){return username;};
         std::string GetIpAddress(){return IpAddress;};
         void sendMsg(const std::string &msg) const;
+
 
 
 };

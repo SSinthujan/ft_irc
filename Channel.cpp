@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 02:01:04 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 17:29:05 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,3 +131,4 @@ std::vector<std::string> Channel::GetMembers() const
         list.push_back(it->first);
     return list;
 }
+
