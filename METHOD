@@ -4,7 +4,7 @@
 
 < < CAP LS
 < < NICK GORG2
-< < USER dakojic dakojic irc.freenode.net :Darko Kojic
+< < USER ssitchsa ssitchsa irc.freenode.net :Darko Kojic
 > > :*.freenode.net NOTICE * :*** Looking up your ident...
 > > :*.freenode.net NOTICE * :*** Looking up your hostname...
 > > :*.freenode.net CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl server-time setname userhost-in-names 
@@ -14,8 +14,8 @@
 > > :*.freenode.net CAP GORG2 ACK :multi-prefix
 < < CAP END
 > > :*.freenode.net NOTICE GORG2 :*** Could not resolve your hostname: Nameserver failure; using your IP address (62.210.34.241) instead.
-> > :*.freenode.net NOTICE GORG2 :*** Ident lookup timed out, using ~dakojic instead.
-> > :*.freenode.net 001 GORG2 :Welcome to the freenode IRC Network GORG2!~dakojic@62.210.34.241
+> > :*.freenode.net NOTICE GORG2 :*** Ident lookup timed out, using ~ssitchsa instead.
+> > :*.freenode.net 001 GORG2 :Welcome to the freenode IRC Network GORG2!~ssitchsa@62.210.34.241
 < < MODE GORG2 +i
 
 
@@ -34,7 +34,7 @@ Starting the connection with the client
 /join #channel
 
 JOIN CHANNEL :
-Format      :GORG2!~dakojic@freenode-rb6.tkf.6vib9m.IP JOIN :#essai
+Format      :GORG2!~ssitchsa@freenode-rb6.tkf.6vib9m.IP JOIN :#essai
             A voir ce que tout ca veut dire ou plutot l'ordre'
 /join INVITE_ONLY_CHANNEL/
     :*.freenode.net 473 NAME #CHANNEL :Cannot join channel (invite only)
