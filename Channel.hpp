@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/21 17:15:56 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 02:00:55 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include "Client.hpp"
 
+class Client;
 
 class Channel
 {
@@ -32,10 +34,10 @@ class Channel
         bool topicRestricted;
         bool keyEnabled;
         bool inviteOnly;
-        Channel();
 
     public:
-            Channel(std::string name){channelName = name; maxUsers = -1;};
+            Channel();
+            Channel(std::string name);
 
            // === Informations générales
            std::string GetChannelName() const { return channelName; };
@@ -75,6 +77,10 @@ class Channel
            void EnableKey(std::string const &pass);
            void DisableKey();
            bool IsKeyEnabled() const { return keyEnabled; };
+
+           //msg
+           void Broadcast(const std::string &msg, const std::map<int, Client> &clients);
+
 };
 
 #endif

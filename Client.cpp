@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dakojic <dakojic@student.42.fr>            +#+  +:+       +#+        */
+/*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:12 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/14 16:48:02 by dakojic          ###   ########.fr       */
+/*   Updated: 2025/04/23 01:36:36 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,4 +23,9 @@ void Client::SetUser(std::vector<std::string> info)
         for(size_t i = 5; i < info.size(); i++)
             realname +=" " + info[i];
     }
+}
+
+void Client::sendMsg(const std::string &msg) const
+{
+    send(Fd, msg.c_str(), msg.length(), 0);
 }

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/21 22:46:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 01:39:06 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <vector>
+#include <sys/socket.h> 
 
 class Client
 {
@@ -39,12 +40,14 @@ class Client
         void SetFd(int fd){Fd = fd;};
         void SetIpAdress(std::string IpAdr){IpAddress = IpAdr;};
         void ClearBuffer(){true_buffer.clear();};
-        std::string GetNickname(){return nickname;};
+        std::string GetNickname()const {return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
         bool IsRegistered() const { return registered; };\
         std::string GetUsername(){return username;};
         std::string GetIpAddress(){return IpAddress;};
+        void sendMsg(const std::string &msg) const;
+
 
 };
 

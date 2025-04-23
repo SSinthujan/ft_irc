@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by dakojic           #+#    #+#             */
-/*   Updated: 2025/04/21 22:56:51 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 01:47:31 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,7 +190,7 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "PASS")
     {
-        if(split.size() > 1 && split[1] != this->serverPassword)
+        if(split.size() > 1 && split[1] != this->_password)
         {
             std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
             send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
@@ -198,7 +198,7 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "JOIN" && split.size() > 1)
     {
-        Join(split, fd);
+        Join(*tmp, split, fd);
     }
     else
     {
@@ -223,31 +223,94 @@ std::vector<std::string> SplitByComma(std::string str)
 
 bool Server::CheckIfChannelExists(std::string str)
 {
-    for (std::vector<Channel>::const_iterator it = channels.begin(); it != channels.end(); ++it)
-    {
-        if(it->GetChannelName() == str)
-            return true;
-    }
-    return false;
+    return channels.find(str) != channels.end();
 };
 
-void Server::Join(std::vector<std::string> str, int fd)
+void Server::Join(Client &client ,std::vector<std::string> str, int fd)
 {
+    (void)fd;
     std::vector<std::string> channelsToJoin;
+    std::vector<std::string> keys;
+    std::string nickname = client.GetNickname();
     
-    if(str.empty() || str[1][0] == ' ')
+    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
     {
         std::cout<<"CANT JOIN"<< std::endl;
         return ;
     }
     channelsToJoin = SplitByComma(str[1]);
-    for(std::vector<std::string>::iterator it = channelsToJoin.begin(); it != channelsToJoin.end(); it++)
+    if (str.size() > 2)
+        keys = SplitByComma(str[2]);
+    for (size_t i = 0; i < channelsToJoin.size(); ++i)
     {
-        if(CheckIfChannelExists(*it))
-            std::cout<<"WE JOINING WITH " << fd<<std::endl;
+        std::string channelName = channelsToJoin[i];
+        std::string key = (i < keys.size()) ? keys[i] : "";
+    
+        Channel* channel;
+    
+        // Crée ou récupère le channel
+        if (!CheckIfChannelExists(channelName))
+        {
+            channels[channelName] = Channel(channelName);
+            channel = &channels[channelName];
+            channel->SetOperator(nickname); // premier arrivé = opérateur
+        }
         else
-            std::cout<<"WE CREATING WITH "<<  fd<< std::endl;
+        {
+             channel = &channels[channelName];
+        }
+    
+        // Déjà membre ?
+        if (channel->HasMember(nickname))
+            continue;
+    
+        // Vérification mode +i (invite-only)
+         if (channel->CheckInviteOnly() && !channel->IsInvited(nickname))
+        {
+            client.sendMsg("473 " + nickname + " " + channelName + " :Cannot join channel (+i)\r\n");
+            continue;
+        }
+            // Vérification mode +k (clé)
+        if (channel->IsKeyEnabled() && channel->GetPassword() != key)
+        {
+            client.sendMsg("475 " + nickname + " " + channelName + " :Cannot join channel (+k)\r\n");
+            continue;
+        }
+
+        // Vérification canal plein
+        if (channel->IsFull())
+        {
+            client.sendMsg("471 " + nickname + " " + channelName + " :Cannot join channel (+l)\r\n");
+            continue;
+        }
+
+        // Ajout du membre
+        channel->AddMember(nickname);
+
+        // Broadcast JOIN à tous les membres du channel
+        std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
+        channel->Broadcast(joinMsg, clients);
+
+        // Envoi du topic s’il existe
+        if (!channel->GetTopic().empty())
+        {
+            client.sendMsg("332 " + nickname + " " + channelName + " :" + channel->GetTopic() + "\r\n"); // RPL_TOPIC
+        }
+
+        // Envoi de la liste des utilisateurs (RPL_NAMREPLY + RPL_ENDOFNAMES)
+        std::string names;
+        std::vector<std::string> members = channel->GetMembers();
+        for (size_t j = 0; j < members.size(); ++j)
+        {
+            if (channel->IsOperator(members[j]))
+                names += "@";
+            names += members[j] + " ";
+        }
+
+        client.sendMsg("353 " + nickname + " = " + channelName + " :" + names + "\r\n"); // RPL_NAMREPLY
+        client.sendMsg("366 " + nickname + " " + channelName + " :End of /NAMES list\r\n"); // RPL_ENDOFNAMES
     }
+    
 };
 
 void Server::ReceiveNewData(int fd)
