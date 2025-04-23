@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/21 22:51:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/23 01:26:50 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Server
         static bool Signal;
         std::map<int, Client> clients;
         std::vector<struct pollfd> fds;
-        std::vector<Channel> channels;
+        std::map<std::string, Channel> channels;
         std::string serverPassword;
 
         std::string _portStr;
@@ -78,7 +78,7 @@ class Server
 
         //Cmds
 
-        void Join(std::vector<std::string>, int fd);
+        void Join(Client &client ,std::vector<std::string> str, int fd);
 };
 
 
