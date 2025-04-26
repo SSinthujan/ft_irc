@@ -63,7 +63,7 @@ class Server
         bool CheckIfChannelExists(std::string);
 
         //Signal
-        static void SignalHadler(int signum);
+        static void SignalHandler(int signum);
 
         //Getters
         Client* GetClient(int fd);
@@ -71,7 +71,7 @@ class Server
 
         //Close
         void CloseFds();
-        void CleanClients(int fds);
+        void CleanClient(int fds);
 
         //Else
         std::vector<std::string> SplitTmpBuffer(std::string);

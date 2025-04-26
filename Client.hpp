@@ -31,7 +31,7 @@ class Client
         
         bool registered;
     public:
-        Client(){registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname";};
+        Client(){registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
         
         int GetFd(){return Fd;};
         std::string GetBuffer(){return true_buffer;};
@@ -47,6 +47,7 @@ class Client
         std::string GetUsername(){return username;};
         std::string GetIpAddress(){return IpAddress;};
         void sendMsg(const std::string &msg) const;
+        std::string get_command();
 
 
 };
