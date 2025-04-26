@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 14:50:59 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 16:10:08 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,17 +168,23 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "NICK" && split.size() > 1)
     {
-        std::string oldNick = tmp->GetNickname();
-        tmp->SetNickname(split[1]);
+        if (tmp->GetPass())
+        {
+            std::string oldNick = tmp->GetNickname();
+            tmp->SetNickname(split[1]);
+        }
     }
     else if(split[0] == "USER" && split.size() > 4)
     {
-        tmp->SetUser(split);
+        if (tmp->GetPass())
+        {
+            tmp->SetUser(split);
         
         // Si le nick est déjà défini, envoyer les messages de bienvenue
-        if(!tmp->GetNickname().empty()) {
+            if(!tmp->GetNickname().empty()) {
             // Envoyer les mêmes messages que dans la section NICK
             // [Code des messages de bienvenue ici]
+            }
         }
     }
     else if(split[0] == "PING" && split.size() > 1)
@@ -193,6 +199,8 @@ void Server::ParseLaunch(std::string &str, int fd)
             std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
             send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
         }
+        else
+            tmp->SetPass(true);
     }
     else if(split[0] == "JOIN" && split.size() > 1)
     {

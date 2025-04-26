@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 17:28:54 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 16:08:29 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,13 @@ class Client
         std::string realname;
         
         bool registered;
+        bool pass;
     public:
-        Client(){registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname";};
+        Client(){pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname";};
         
         int GetFd(){return Fd;};
+        int GetPass(){return pass;};
+        void SetPass(bool set){pass = set;};
         std::string GetBuffer(){return true_buffer;};
         void AddToBuffer(char *str){true_buffer += str;};
         void SetNickname(std::string s){nickname = s;};
