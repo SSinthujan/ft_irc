@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 20:50:10 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 21:00:54 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,10 +134,9 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
     {
-        if (tmp->GetPass() && tmp->GetNick() && tmp->GetUser())
+        if (!(tmp->GetRegistered()) && (tmp->GetPass() && tmp->GetNick() && tmp->GetUser()))
         {
             tmp->SetRegistered(true);
-        }
             std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
             send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
             
@@ -164,6 +163,7 @@ void Server::ParseLaunch(std::string &str, int fd)
             // Message 376 (RPL_ENDOFMOTD)
             std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
             send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
+        }
     }
     else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
     {
