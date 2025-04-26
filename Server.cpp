@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 21:00:54 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 21:12:30 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,9 +128,12 @@ void Server::ParseLaunch(std::string &str, int fd)
         str = str.substr(sep);
     if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
     {
-        std::cout <<"FD : " << fd << std::endl;
-        std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
-        send(tmp->GetFd(), response.c_str(), response.length(), 0);
+        if (!(tmp->GetRegistered()))
+        {
+            std::cout <<"FD : " << fd << std::endl;
+            std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
+            send(tmp->GetFd(), response.c_str(), response.length(), 0);
+        }
     }
     else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
     {
