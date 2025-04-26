@@ -52,12 +52,11 @@ class Server
         void inputCheck(int ac, char **av);
         void ServerSocket();
         void ServerInit();
+        void parseCmd(std::string &str);
         
         //Client Calls
         void AcceptNewClient();
         void ReceiveNewData(int fd);
-        void ParseLaunch(std::string &o, int);
-        std::vector<std::string> SplitCmd(std::string &s);
 
         //Channel
         bool CheckIfChannelExists(std::string);
@@ -73,12 +72,9 @@ class Server
         void CloseFds();
         void CleanClient(int fds);
 
-        //Else
-        std::vector<std::string> SplitTmpBuffer(std::string);
-
         //Cmds
-
-        void Join(Client &client ,std::vector<std::string> str, int fd);
+        void nick(Client &client, std::string &str);
+        void join(Client &client ,std::vector<std::string> &str, int fd);
 };
 
 

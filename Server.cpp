@@ -91,231 +91,105 @@ void Server::SignalHandler(int signum)
     Server::Signal = true;
 };
 
-// std::vector<std::string> Server::SplitTmpBuffer(std::string str) // A revoir ??
-// {
-//     std::vector<std::string> split;
-//     std::istringstream iss(str);
-//     std::string tmp;
-//     while(std::getline(iss, tmp))
-//     {
-//         size_t pos = tmp.find_first_of("\r\n");
-//         if(pos != std::string::npos)
-//             tmp = tmp.substr(0, pos);
-//         split.push_back(tmp);
-//     }
-//     return split;
-
-// };
-
-// std::vector<std::string> Server::SplitCmd(std::string &cmd) // A revoir ??
-// {
-//     std::vector<std::string> vec;
-//     std::istringstream stm(cmd);
-//     std::string token;
-//     while(stm >> token)
-//     {
-//         vec.push_back(token);
-//         token.clear();
-//     }
-//     return vec;
-// };
-
-// void Server::ParseLaunch(std::string &str, int fd)
-// {
-//     if(str.empty())
-//         return ;
-//     std::vector<std::string> split = SplitCmd(str);
-//     size_t sep = str.find_first_of(" \t\v");
-
-//     Client *tmp = GetClient(fd);
-//     if(sep != std::string::npos)
-//         str = str.substr(sep);
-//     if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
-//     {
-//         std::cout <<"FD : " << fd << std::endl;
-//         std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
-//         send(tmp->GetFd(), response.c_str(), response.length(), 0);
-//     }
-//     else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
-//     {
-//         std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
-//         send(tmp->GetFd(), response.c_str(), response.length(), 0);
-//     }
-//     else if(split[0] == "NICK" && split.size() > 1)
-//     {
-//         std::string oldNick = tmp->GetNickname();
-//         tmp->SetNickname(split[1]);
-
-//         // Envoi d'une réponse de bienvenue si le client a aussi envoyé USER
-//         if(!tmp->GetUsername().empty()) {
-//             // Message 001 (RPL_WELCOME)
-//             std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
-//             send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
-
-//             // Message 002 (RPL_YOURHOST)
-//             std::string yourHost = ":irc.server 002 " + tmp->GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
-//             send(tmp->GetFd(), yourHost.c_str(), yourHost.length(), 0);
-
-//             // Message 003 (RPL_CREATED)
-//             std::string created = ":irc.server 003 " + tmp->GetNickname() + " :This server was created today\r\n";
-//             send(tmp->GetFd(), created.c_str(), created.length(), 0);
-
-//             // Message 004 (RPL_MYINFO)
-//             std::string myInfo = ":irc.server 004 " + tmp->GetNickname() + " irc.server 1.0 o o\r\n";
-//             send(tmp->GetFd(), myInfo.c_str(), myInfo.length(), 0);
-
-//             // Message 375 (RPL_MOTDSTART)
-//             std::string motdStart = ":irc.server 375 " + tmp->GetNickname() + " :- irc.server Message of the day - \r\n";
-//             send(tmp->GetFd(), motdStart.c_str(), motdStart.length(), 0);
-
-//             // Message 372 (RPL_MOTD)
-//             std::string motd = ":irc.server 372 " + tmp->GetNickname() + " :- Welcome to the IRC server\r\n";
-//             send(tmp->GetFd(), motd.c_str(), motd.length(), 0);
-
-//             // Message 376 (RPL_ENDOFMOTD)
-//             std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
-//             send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
-//         }
-//     }
-//     else if(split[0] == "USER" && split.size() > 4)
-//     {
-//         tmp->SetUser(split);
-
-//         // Si le nick est déjà défini, envoyer les messages de bienvenue
-//         if(!tmp->GetNickname().empty()) {
-//             // Envoyer les mêmes messages que dans la section NICK
-//             // [Code des messages de bienvenue ici]
-//         }
-//     }
-//     else if(split[0] == "PING" && split.size() > 1)
-//     {
-//         std::string response = "PONG :" + split[1] + "\r\n";
-//         send(tmp->GetFd(), response.c_str(), response.length(), 0);
-//     }
-//     else if(split[0] == "PASS")
-//     {
-//         if(split.size() > 1 && split[1] != this->_password)
-//         {
-//             std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
-//             send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
-//         }
-//     }
-//     else if(split[0] == "JOIN" && split.size() > 1)
-//     {
-//         Join(*tmp, split, fd);
-//     }
-//     else
-//     {
-//         std::cout << "Unknown command: " << split[0] << std::endl;
-//     }
-// };
-
-// std::vector<std::string> SplitByComma(std::string str)
-// {
-//     std::vector<std::string> split;
-//     size_t start = 0;
-//     size_t end = str.find(',');
-//     while (end != std::string::npos)
-//     {
-//         split.push_back(str.substr(start, end - start));
-//         start = end + 1;
-//         end = str.find(',', start);
-//     }
-//     split.push_back(str.substr(start));
-//     return split;
-// };
-
 bool Server::CheckIfChannelExists(std::string str)
 {
     return channels.find(str) != channels.end();
 };
 
-void Server::Join(Client &client ,std::vector<std::string> str, int fd)
+void parseCmd(std::string &str){
+    std::string prefix;
+    std::string cmd;
+    std::string suffix;
+    std::vector<std::string> args;
+    std::stringstream ss(str);
+    std::string word;
+
+    if(str[0] == ':') 
+    {
+        ss >> prefix;
+        prefix = prefix.substr(1);
+    }
+    ss >> cmd;
+    while (ss >> word)
+    {
+        if (word[0] == ':')
+        {
+            suffix = word.substr(1);
+            break;
+        }
+        args.push_back(word);
+    }
+    if (cmd == "CAP"){
+
+    }
+    else if (cmd == "INVITE"){
+
+    }
+    else if (cmd == "JOIN"){
+        
+    }
+    else if (cmd == "KICK"){
+        
+    }
+    else if (cmd == "KILL"){
+        
+    }
+    else if (cmd == "MODE"){
+        
+    }
+    else if (cmd == "NAMES"){
+        
+    }
+    else if (cmd == "NICK"){
+        
+    }
+    else if (cmd == "NOTICE"){
+        
+    }
+    else if (cmd == "OPER"){
+        
+    }
+    else if (cmd == "PART"){
+        
+    }
+    else if (cmd == "PASS"){
+        
+    }
+    else if (cmd == "PASS"){
+        
+    }
+    else if (cmd == "PING"){
+        
+    }
+    else if (cmd == "PRIVMSG"){
+        
+    }
+    else if (cmd == "QUIT"){
+        
+    }
+    else if (cmd == "TOPIC"){
+        
+    }
+    else if (cmd == "UNKNOWN"){
+        
+    }
+    else if (cmd == "USER"){
+        
+    }
+    else if (cmd == "WHO"){
+        
+    }
+}
+
+void Server::nick(Client &client, std::string &str){
+    client.SetNickname(str);
+    std::cout << 
+}
+
+void Server::join(Client &client ,std::vector<std::string> &str, int fd)
 {
-    (void)fd;
-    std::vector<std::string> channelsToJoin;
-    std::vector<std::string> keys;
-    std::string nickname = client.GetNickname();
 
-    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
-    {
-        std::cout<<"CANT JOIN"<< std::endl;
-        return ;
-    }
-    channelsToJoin = SplitByComma(str[1]);
-    if (str.size() > 2)
-        keys = SplitByComma(str[2]);
-    for (size_t i = 0; i < channelsToJoin.size(); ++i)
-    {
-        std::string channelName = channelsToJoin[i];
-        std::string key = (i < keys.size()) ? keys[i] : "";
-
-        Channel* channel;
-
-        // Crée ou récupère le channel
-        if (!CheckIfChannelExists(channelName))
-        {
-            channels[channelName] = Channel(channelName);
-            channel = &channels[channelName];
-            channel->SetOperator(nickname); // premier arrivé = opérateur
-        }
-        else
-        {
-             channel = &channels[channelName];
-        }
-
-        // Déjà membre ?
-        if (channel->HasMember(nickname))
-            continue;
-
-        // Vérification mode +i (invite-only)
-         if (channel->CheckInviteOnly() && !channel->IsInvited(nickname))
-        {
-            client.sendMsg("473 " + nickname + " " + channelName + " :Cannot join channel (+i)\r\n");
-            continue;
-        }
-            // Vérification mode +k (clé)
-        if (channel->IsKeyEnabled() && channel->GetPassword() != key)
-        {
-            client.sendMsg("475 " + nickname + " " + channelName + " :Cannot join channel (+k)\r\n");
-            continue;
-        }
-
-        // Vérification canal plein
-        if (channel->IsFull())
-        {
-            client.sendMsg("471 " + nickname + " " + channelName + " :Cannot join channel (+l)\r\n");
-            continue;
-        }
-
-        // Ajout du membre
-        channel->AddMember(nickname);
-
-        // Broadcast JOIN à tous les membres du channel
-        std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
-        channel->Broadcast(joinMsg, clients);
-
-        // Envoi du topic s’il existe
-        if (!channel->GetTopic().empty())
-        {
-            client.sendMsg("332 " + nickname + " " + channelName + " :" + channel->GetTopic() + "\r\n"); // RPL_TOPIC
-        }
-
-        // Envoi de la liste des utilisateurs (RPL_NAMREPLY + RPL_ENDOFNAMES)
-        std::string names;
-        std::vector<std::string> members = channel->GetMembers();
-        for (size_t j = 0; j < members.size(); ++j)
-        {
-            if (channel->IsOperator(members[j]))
-                names += "@";
-            names += members[j] + " ";
-        }
-
-        client.sendMsg("353 " + nickname + " = " + channelName + " :" + names + "\r\n"); // RPL_NAMREPLY
-        client.sendMsg("366 " + nickname + " " + channelName + " :End of /NAMES list\r\n"); // RPL_ENDOFNAMES
-    }
-
-};
+}
 
 void Server::ReceiveNewData(int fd)
 {
