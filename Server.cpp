@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 16:10:08 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 20:50:10 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,11 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
     {
-        std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
+        if (tmp->GetPass() && tmp->GetNick() && tmp->GetUser())
+        {
+            tmp->SetRegistered(true);
+        }
+            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
             send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
             
             // Message 002 (RPL_YOURHOST)
@@ -172,25 +176,30 @@ void Server::ParseLaunch(std::string &str, int fd)
         {
             std::string oldNick = tmp->GetNickname();
             tmp->SetNickname(split[1]);
+            tmp->SetNick(true);
         }
     }
     else if(split[0] == "USER" && split.size() > 4)
     {
-        if (tmp->GetPass())
+        if (!(tmp->GetUser()))
         {
-            tmp->SetUser(split);
-        
-        // Si le nick est déjà défini, envoyer les messages de bienvenue
-            if(!tmp->GetNickname().empty()) {
-            // Envoyer les mêmes messages que dans la section NICK
-            // [Code des messages de bienvenue ici]
+            if (tmp->GetPass())
+            {
+                tmp->SetUser(split);
+                tmp->SetBuser(true);
             }
         }
+        else
+            std::cout << "Unknown command: " << split[0] << std::endl;
+        
     }
     else if(split[0] == "PING" && split.size() > 1)
     {
-        std::string response = "PONG :" + split[1] + "\r\n";
-        send(tmp->GetFd(), response.c_str(), response.length(), 0);
+        if(tmp->GetRegistered())
+        {
+            std::string response = "PONG :" + split[1] + "\r\n";
+            send(tmp->GetFd(), response.c_str(), response.length(), 0);
+        }
     }
     else if(split[0] == "PASS")
     {
@@ -204,11 +213,13 @@ void Server::ParseLaunch(std::string &str, int fd)
     }
     else if(split[0] == "JOIN" && split.size() > 1)
     {
-        Join(*tmp, split, fd);
+        if (tmp->GetRegistered())
+            Join(*tmp, split, fd);
     }
     else if (split[0] == "MODE")
     {
-        HandleMode(tmp, split, fd);
+        if (tmp->GetRegistered())
+            HandleMode(tmp, split, fd);
     }
     else
     {
