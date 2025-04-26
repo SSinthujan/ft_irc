@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 17:42:12 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 13:45:34 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Channel
             Channel(std::string name);
 
            // === Informations générales
-           std::string GetChannelName() const { return channelName; };
+           std::string& GetChannelName()  { return channelName; };
            void SetChannelName(std::string &s) { channelName = s; };
    
            // === Gestion du topic

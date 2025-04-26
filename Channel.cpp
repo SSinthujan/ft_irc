@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 17:29:05 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/24 15:21:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,15 +115,15 @@ void Channel::Broadcast(const std::string &msg, const std::map<int, Client> &cli
 {
     for (std::map<std::string, int>::iterator it = members.begin(); it != members.end(); ++it)
     {
-        for (std::map<int, Client>::const_iterator cli = clients.begin(); cli != clients.end(); ++cli)
+        int fd = it->second;
+        std::map<int, Client>::const_iterator cli = clients.find(fd);
+        if (cli != clients.end())
         {
-            if (cli->second.GetNickname() == it->first)
-            {
-                cli->second.sendMsg(msg);
-            }
+            cli->second.sendMsg(msg);
         }
     }
 }
+
 std::vector<std::string> Channel::GetMembers() const
 {
     std::vector<std::string> list;

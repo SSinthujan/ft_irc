@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 17:56:22 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:50:59 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,20 +132,9 @@ void Server::ParseLaunch(std::string &str, int fd)
         std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
         send(tmp->GetFd(), response.c_str(), response.length(), 0);
     }
-    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
+    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
     {
-        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
-        send(tmp->GetFd(), response.c_str(), response.length(), 0); 
-    }
-    else if(split[0] == "NICK" && split.size() > 1)
-    {
-        std::string oldNick = tmp->GetNickname();
-        tmp->SetNickname(split[1]);
-        
-        // Envoi d'une réponse de bienvenue si le client a aussi envoyé USER
-        if(!tmp->GetUsername().empty()) {
-            // Message 001 (RPL_WELCOME)
-            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
+        std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
             send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
             
             // Message 002 (RPL_YOURHOST)
@@ -171,7 +160,16 @@ void Server::ParseLaunch(std::string &str, int fd)
             // Message 376 (RPL_ENDOFMOTD)
             std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
             send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
-        }
+    }
+    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
+    {
+        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
+        send(tmp->GetFd(), response.c_str(), response.length(), 0); 
+    }
+    else if(split[0] == "NICK" && split.size() > 1)
+    {
+        std::string oldNick = tmp->GetNickname();
+        tmp->SetNickname(split[1]);
     }
     else if(split[0] == "USER" && split.size() > 4)
     {
@@ -429,8 +427,6 @@ Channel* Server::GetChannel(const std::string& name)
     return NULL;
 }
 
-
-
 void Server::ReceiveNewData(int fd)
 {
     char buff[1024];
@@ -514,7 +510,7 @@ void Server::ServerSocket()
 
 void Server::ServerInit()
 {
-    this->Port = 4444;
+    //this->Port = 4444;
     ServerSocket();
     std::cout<<"Server <" << ServerSocketFD << "> connected" << std::endl;
     std::cout<<"Waiting for incomming connections..."<<std::endl;
