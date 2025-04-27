@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 19:24:56 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 20:49:40 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,13 @@ void Server::ParseLaunch(std::string &str, int fd)
         if (tmp->GetRegistered())
         {
             Names(*tmp, split, fd);
-            this->quit_flag = true;
+        }
+    }
+    else if (split[0] == "KICK")
+    {
+        if (tmp->GetRegistered())
+        {
+            Kick(*tmp, split, fd);
         }
     }
     else
@@ -266,6 +272,34 @@ bool Server::CheckIfChannelExists(std::string str)
 {
     return channels.find(str) != channels.end();
 };
+
+void Server::Kick(Client &client, std::vector<std::string> str, int fd)
+{
+    if (str.size() < 2 || str[1].empty() || str[1][0] == ' ')
+        return ;
+    (void)fd;
+    std::string channelsToKick;
+    std::string name;
+    std::string motif;
+    
+    name = str[2];
+    channelsToKick = str[1];
+    if (str.size() > 2)
+        std::string motif = str[3];
+    else
+        motif = "banned from the channel";
+    if (!CheckIfChannelExists(channelsToKick))
+        return;
+    Channel& channel = channels[channelsToKick];
+    if (!(channel.IsOperator(client.GetNickname())))
+        return;
+    if (!(channel.HasMember(name)))
+        return;
+    channel.RemoveMember(name);
+    std::string kickMessage = ": @" + client.GetNickname() + " KICK " + channelsToKick + " " + name + " :" + motif + "\r\n";
+    channel.Broadcast(kickMessage, clients);
+}
+
 void Server::Names(Client &client, std::vector<std::string> str, int fd)
 {
     std::vector<std::string> channelsToPrint;
@@ -355,7 +389,7 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
     std::vector<std::string> keys;
     std::string nickname = client.GetNickname();
     
-    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
+    if(str.size() < 1 || str[1].empty() || str[1][0] == ' ')
         return ;
     channelsToJoin = SplitByComma(str[1]);
     if (str.size() > 2)
