@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 04:25:17 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 19:02:12 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ class Server
         //Channel
         bool CheckIfChannelExists(std::string);
         void HandleMode(Client *client, const std::vector<std::string> &split, int fd);
+        void Names(Client &client, std::vector<std::string> str, int fd);
 
         //Signal
         static void SignalHadler(int signum);

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 04:35:21 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 19:24:56 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,6 +233,14 @@ void Server::ParseLaunch(std::string &str, int fd)
             this->quit_flag = true;
         }
     }
+    else if (split[0] == "NAMES")
+    {
+        if (tmp->GetRegistered())
+        {
+            Names(*tmp, split, fd);
+            this->quit_flag = true;
+        }
+    }
     else
     {
         std::cout << "Unknown command: " << split[0] << std::endl;
@@ -258,6 +266,38 @@ bool Server::CheckIfChannelExists(std::string str)
 {
     return channels.find(str) != channels.end();
 };
+void Server::Names(Client &client, std::vector<std::string> str, int fd)
+{
+    std::vector<std::string> channelsToPrint;
+    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
+        return ;
+    if (str.size() > 1)
+        channelsToPrint = SplitByComma(str[1]);
+
+    for (size_t i = 0; i < channelsToPrint.size(); ++i)
+    {
+        std::string channelName = channelsToPrint[i];
+
+        if (CheckIfChannelExists(channelName))
+        {
+            Channel& channel = channels[channelName];
+            std::vector<std::string> members = channel.GetMembers();
+            std::string response = ":" + std::string("irc.server 353 ") + client.GetNickname() + " = " + channelName + " :";
+            for (std::vector<std::string>::iterator it = members.begin(); it != members.end(); ++it)
+            {
+                std::size_t index = std::distance(members.begin(), it);
+                if (channel.IsOperator(members[index]))
+                    response += "@";
+                response += *it + " ";
+            }
+            response += "\r\n";
+            send(fd, response.c_str(), response.length(), 0);
+            std::string endResponse = ":" + std::string("irc.server 366 ") + client.GetNickname() + " " + channelName + " :End of /NAMES list.\r\n";
+            send(fd, endResponse.c_str(), endResponse.length(), 0);
+        }
+    }
+    
+}
 
 void Server::Quit(Client &client, std::vector<std::string> str, int fd)
 {
