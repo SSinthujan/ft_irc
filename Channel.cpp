@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 02:01:04 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 03:27:08 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,12 +65,12 @@ void Channel::AddMember(std::string &nickname)
         members[nickname] = 1; // 1 = membre standard
 }
 
-void Channel::RemoveMember(std::string &nickname)
+void Channel::RemoveMember(const std::string &nickname)
 {
     members.erase(nickname);
 }
 
-bool Channel::HasMember(std::string const &nickname) const
+bool Channel::HasMember(std::string const &nickname)
 {
     return members.find(nickname) != members.end();
 }
@@ -115,19 +115,24 @@ void Channel::Broadcast(const std::string &msg, const std::map<int, Client> &cli
 {
     for (std::map<std::string, int>::iterator it = members.begin(); it != members.end(); ++it)
     {
-        for (std::map<int, Client>::const_iterator cli = clients.begin(); cli != clients.end(); ++cli)
+        int fd = it->second;
+        std::map<int, Client>::const_iterator cli = clients.find(fd);
+        if (cli != clients.end())
         {
-            if (cli->second.GetNickname() == it->first)
-            {
-                cli->second.sendMsg(msg);
-            }
+            cli->second.sendMsg(msg);
         }
     }
 }
+
 std::vector<std::string> Channel::GetMembers() const
 {
     std::vector<std::string> list;
     for (std::map<std::string, int>::const_iterator it = members.begin(); it != members.end(); ++it)
         list.push_back(it->first);
     return list;
+}
+
+bool Channel::IsEmpty() const
+{
+    return members.empty();
 }

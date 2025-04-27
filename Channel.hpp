@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/23 02:00:55 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 03:26:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Channel
             Channel(std::string name);
 
            // === Informations générales
-           std::string GetChannelName() const { return channelName; };
+           std::string& GetChannelName()  { return channelName; };
            void SetChannelName(std::string &s) { channelName = s; };
    
            // === Gestion du topic
@@ -51,17 +51,19 @@ class Channel
    
            // === Gestion des membres
            void AddMember(std::string &nickname);
-           void RemoveMember(std::string &nickname);
-           bool HasMember(std::string const &nickname) const;
+           void RemoveMember(const std::string &nickname);
+           bool HasMember(const std::string  &nickname);
            std::vector<std::string> GetMembers() const;
            bool IsFull() const;
            void SetMaxUsers(int n) { maxUsers = n; };
+           bool IsEmpty() const;
    
            // === Gestion des opérateurs
            int CheckRole(std::string name);
            void SetOperator(std::string const &nickname);
            void RemoveOperator(std::string const &nickname);
            bool IsOperator(std::string const &nickname) const;
+           void AddOperator(const std::string &nickname) { roles[nickname] = 1; };
    
            // === Mode +i : gestion du mode sur invitation 
            void SetInviteOnly() { inviteOnly = true; };
@@ -70,6 +72,8 @@ class Channel
            void AddInvite(std::string const &nickname);
            bool IsInvited(std::string const &nickname) const;
            void RemoveInvite(std::string const &nickname);
+           void SetUserLimit(int limit) { maxUsers = limit; };
+            void RemoveUserLimit() { maxUsers = -1; };
    
            // === Mode +k : gestion de la clé (mot de passe)
            void SetPassword(std::string s) { password = s; };
@@ -77,6 +81,8 @@ class Channel
            void EnableKey(std::string const &pass);
            void DisableKey();
            bool IsKeyEnabled() const { return keyEnabled; };
+           void SetKey(const std::string &key) { password = key; keyEnabled = true; }
+            void RemoveKey() { password.clear(); keyEnabled = false; }
 
            //msg
            void Broadcast(const std::string &msg, const std::map<int, Client> &clients);
