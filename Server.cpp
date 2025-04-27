@@ -12,6 +12,7 @@
 
 #include "Server.hpp"
 
+//
 Server::Server()
 {
     ServerSocketFD = -1;
@@ -22,15 +23,16 @@ void Server::inputCheck(int ac, char **av)
 {
 
     if (ac != 3)
-        throw (std::runtime_error("Wrong args : ./ircserv <port> <password>"));
+        throw(std::runtime_error("Wrong args : ./ircserv <port> <password>"));
 
     _portStr = av[1];
     _password = av[2];
 
-    char* end = NULL;
+    char *end = NULL;
+
     long port = strtol(_portStr.c_str(), &end, 10);
 
-    if (*end != '\0')
+    if (!_portStr.c_str()[0] || *end != '\0')
         throw(std::runtime_error("Port must be a valid number (digits only)"));
 
     if (port < 1024 || port > 65535)
@@ -38,17 +40,18 @@ void Server::inputCheck(int ac, char **av)
 
     Port = static_cast<int>(port);
 }
-Client* Server::GetClient(int fd)
+
+Client *Server::GetClient(int fd)
 {
-    for(size_t i = 0; i < this->clients.size(); i++)
+    for (size_t i = 0; i < this->clients.size(); i++)
     {
-        if(this->clients[i].GetFd() == fd)
+        if (this->clients[i].GetFd() == fd)
             return &this->clients[i];
     }
     return NULL;
 };
 
-void Server::CleanClients(int fd)
+void Server::CleanClient(int fd)
 {
     /* 1. Remove the pollfd that matches fd */
     for (std::vector<struct pollfd>::iterator it = fds.begin();
@@ -56,23 +59,23 @@ void Server::CleanClients(int fd)
     {
         if (it->fd == fd)
         {
-            fds.erase(it);          // erase → O(N) but only once
+            fds.erase(it); // erase → O(N) but only once
             break;
         }
     }
 
     /* 2. Remove the Client whose key is fd (O(log N)) */
-    clients.erase(fd);              // does nothing if fd not present
+    clients.erase(fd); // does nothing if fd not present
 }
 
 void Server::CloseFds()
 {
-    for(size_t i = 0; i < clients.size(); i++)
+    for (size_t i = 0; i < clients.size(); i++)
     {
-        std::cout << "Client <" << clients[i].GetFd() << "> Disconnected" <<  std::endl;
-        close(clients[i].GetFd());       
+        std::cout << "Client <" << clients[i].GetFd() << "> Disconnected" << std::endl;
+        close(clients[i].GetFd());
     }
-    if(ServerSocketFD != -1)
+    if (ServerSocketFD != -1)
     {
         std::cout << "Server <" << ServerSocketFD << "> disconnected" << std::endl;
         close(ServerSocketFD);
@@ -81,192 +84,115 @@ void Server::CloseFds()
 
 bool Server::Signal = false;
 
-void Server::SignalHadler(int signum)
+void Server::SignalHandler(int signum)
 {
     (void)signum;
-    std::cout << std::endl << "Signal Received" << std::endl;
+    std::cout << std::endl
+              << "Signal Received" << std::endl;
     Server::Signal = true;
-};
-
-std::vector<std::string> Server::SplitTmpBuffer(std::string str) // A revoir ??
-{
-    std::vector<std::string> split;
-    std::istringstream iss(str);
-    std::string tmp;
-    while(std::getline(iss, tmp))
-    {
-        size_t pos = tmp.find_first_of("\r\n");
-        if(pos != std::string::npos)
-            tmp = tmp.substr(0, pos);
-        split.push_back(tmp);
-    }
-    return split;
-    
-};
-
-std::vector<std::string> Server::SplitCmd(std::string &cmd) // A revoir ??
-{
-    std::vector<std::string> vec;
-    std::istringstream stm(cmd);
-    std::string token;
-    while(stm >> token)
-    {
-        vec.push_back(token);
-        token.clear();
-    }
-    return vec;
-};
-
-void Server::ParseLaunch(std::string &str, int fd)
-{
-    if(str.empty())
-        return ;
-    std::vector<std::string> split = SplitCmd(str);
-    size_t sep = str.find_first_of(" \t\v");
-
-    Client *tmp = GetClient(fd);
-    if(sep != std::string::npos)
-        str = str.substr(sep);
-    if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
-    {
-        if (!(tmp->GetRegistered()))
-        {
-            std::cout <<"FD : " << fd << std::endl;
-            std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
-            send(tmp->GetFd(), response.c_str(), response.length(), 0);
-        }
-    }
-    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
-    {
-        if (!(tmp->GetRegistered()) && (tmp->GetPass() && tmp->GetNick() && tmp->GetUser()))
-        {
-            tmp->SetRegistered(true);
-            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
-            send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
-            
-            // Message 002 (RPL_YOURHOST)
-            std::string yourHost = ":irc.server 002 " + tmp->GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
-            send(tmp->GetFd(), yourHost.c_str(), yourHost.length(), 0);
-            
-            // Message 003 (RPL_CREATED)
-            std::string created = ":irc.server 003 " + tmp->GetNickname() + " :This server was created today\r\n";
-            send(tmp->GetFd(), created.c_str(), created.length(), 0);
-            
-            // Message 004 (RPL_MYINFO)
-            std::string myInfo = ":irc.server 004 " + tmp->GetNickname() + " irc.server 1.0 o o\r\n";
-            send(tmp->GetFd(), myInfo.c_str(), myInfo.length(), 0);
-            
-            // Message 375 (RPL_MOTDSTART)
-            std::string motdStart = ":irc.server 375 " + tmp->GetNickname() + " :- irc.server Message of the day - \r\n";
-            send(tmp->GetFd(), motdStart.c_str(), motdStart.length(), 0);
-            
-            // Message 372 (RPL_MOTD)
-            std::string motd = ":irc.server 372 " + tmp->GetNickname() + " :- Welcome to the IRC server\r\n";
-            send(tmp->GetFd(), motd.c_str(), motd.length(), 0);
-            
-            // Message 376 (RPL_ENDOFMOTD)
-            std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
-            send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
-        }
-    }
-    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
-    {
-        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
-        send(tmp->GetFd(), response.c_str(), response.length(), 0); 
-    }
-    else if(split[0] == "NICK" && split.size() > 1)
-    {
-        if (tmp->GetPass())
-        {
-            std::string oldNick = tmp->GetNickname();
-            tmp->SetNickname(split[1]);
-            tmp->SetNick(true);
-        }
-    }
-    else if(split[0] == "USER" && split.size() > 4)
-    {
-        if (!(tmp->GetUser()))
-        {
-            if (tmp->GetPass())
-            {
-                tmp->SetUser(split);
-                tmp->SetBuser(true);
-            }
-        }
-        else
-            std::cout << "Unknown command: " << split[0] << std::endl;
-        
-    }
-    else if(split[0] == "PING" && split.size() > 1)
-    {
-        if(tmp->GetRegistered())
-        {
-            std::string response = "PONG :" + split[1] + "\r\n";
-            send(tmp->GetFd(), response.c_str(), response.length(), 0);
-        }
-    }
-    else if(split[0] == "PASS")
-    {
-        if(split.size() > 1 && split[1] != this->_password)
-        {
-            std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
-            send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
-        }
-        else
-            tmp->SetPass(true);
-    }
-    else if(split[0] == "JOIN" && split.size() > 1)
-    {
-        if (tmp->GetRegistered())
-            Join(*tmp, split, fd);
-    }
-    else if (split[0] == "MODE")
-    {
-        if (tmp->GetRegistered())
-            HandleMode(tmp, split, fd);
-    }
-    else if (split[0] == "QUIT")
-    {
-        if (tmp->GetRegistered())
-        {
-            Quit(*tmp, split, fd);
-            this->quit_flag = true;
-        }
-    }
-    else if (split[0] == "NAMES")
-    {
-        if (tmp->GetRegistered())
-        {
-            Names(*tmp, split, fd);
-            this->quit_flag = true;
-        }
-    }
-    else
-    {
-        std::cout << "Unknown command: " << split[0] << std::endl;
-    }
-};
-
-std::vector<std::string> SplitByComma(std::string str)
-{
-    std::vector<std::string> split;
-    size_t start = 0;
-    size_t end = str.find(',');
-    while (end != std::string::npos)
-    {
-        split.push_back(str.substr(start, end - start));
-        start = end + 1;
-        end = str.find(',', start);
-    }
-    split.push_back(str.substr(start));
-    return split;
 };
 
 bool Server::CheckIfChannelExists(std::string str)
 {
     return channels.find(str) != channels.end();
 };
-void Server::Names(Client &client, std::vector<std::string> str, int fd)
+
+void parseCmd(std::string &str){
+    std::string prefix;
+    std::string cmd;
+    std::string suffix;
+    std::vector<std::string> args;
+    std::stringstream ss(str);
+    std::string word;
+
+    if(str[0] == ':') 
+    {
+        ss >> prefix;
+        prefix = prefix.substr(1);
+    }
+    ss >> cmd;
+    while (ss >> word)
+    {
+        if (word[0] == ':')
+        {
+            suffix = word.substr(1);
+            break;
+        }
+        args.push_back(word);
+    }
+    if (cmd == "CAP"){
+
+    }
+    else if (cmd == "INVITE"){
+
+    }
+    else if (cmd == "JOIN"){
+        
+    }
+    else if (cmd == "KICK"){
+        
+    }
+    else if (cmd == "KILL"){
+        
+    }
+    else if (cmd == "MODE"){
+        
+    }
+    else if (cmd == "NAMES"){
+     
+    }
+    else if (cmd == "NICK"){
+        
+    }
+    else if (cmd == "NOTICE"){
+        
+    }
+    else if (cmd == "OPER"){
+        
+    }
+    else if (cmd == "PART"){
+        
+    }
+    else if (cmd == "PASS"){
+        
+    }
+    else if (cmd == "PASS"){
+        
+    }
+    else if (cmd == "PING"){
+        
+    }
+    else if (cmd == "PRIVMSG"){
+        
+    }
+    else if (cmd == "QUIT"){
+        
+    }
+    else if (cmd == "TOPIC"){
+        
+    }
+    else if (cmd == "UNKNOWN"){
+        
+    }
+    else if (cmd == "USER"){
+        
+    }
+    else if (cmd == "WHO"){
+        
+    }
+}
+
+void Server::nick(Client &client, std::string &str){
+    client.SetNickname(str);
+    std::cout << 
+}
+
+void Server::join(Client &client ,std::vector<std::string> &str, int fd)
+{
+
+}
+  
+void Server::names(Client &client, std::vector<std::string> str, int fd)
 {
     std::vector<std::string> channelsToPrint;
     if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
@@ -299,7 +225,7 @@ void Server::Names(Client &client, std::vector<std::string> str, int fd)
     
 }
 
-void Server::Quit(Client &client, std::vector<std::string> str, int fd)
+void Server::quit(Client &client, std::vector<std::string> str, int fd)
 {
     std::string reason;
     if (str.size() > 1)
@@ -345,94 +271,9 @@ void Server::Quit(Client &client, std::vector<std::string> str, int fd)
     }
     CleanClients(fd);
     close(fd);
-  
 }
-
-void Server::Join(Client &client ,std::vector<std::string> str, int fd)
-{
-    (void)fd;
-    std::vector<std::string> channelsToJoin;
-    std::vector<std::string> keys;
-    std::string nickname = client.GetNickname();
-    
-    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
-        return ;
-    channelsToJoin = SplitByComma(str[1]);
-    if (str.size() > 2)
-        keys = SplitByComma(str[2]);
-    for (size_t i = 0; i < channelsToJoin.size(); ++i)
-    {
-        std::string channelName = channelsToJoin[i];
-        std::string key = (i < keys.size()) ? keys[i] : "";
-    
-        Channel* channel;
-    
-        // Crée ou récupère le channel
-        if (!CheckIfChannelExists(channelName))
-        {
-            channels[channelName] = Channel(channelName);
-            channel = &channels[channelName];
-            channel->SetOperator(nickname); // premier arrivé = opérateur
-        }
-        else
-        {
-             channel = &channels[channelName];
-        }
-    
-        // Déjà membre ?
-        if (channel->HasMember(nickname))
-            continue;
-    
-        // Vérification mode +i (invite-only)
-         if (channel->CheckInviteOnly() && !channel->IsInvited(nickname))
-        {
-            client.sendMsg("473 " + nickname + " " + channelName + " :Cannot join channel (+i)\r\n");
-            continue;
-        }
-            // Vérification mode +k (clé)
-        if (channel->IsKeyEnabled() && channel->GetPassword() != key)
-        {
-            client.sendMsg("475 " + nickname + " " + channelName + " :Cannot join channel (+k)\r\n");
-            continue;
-        }
-
-        // Vérification canal plein
-        if (channel->IsFull())
-        {
-            client.sendMsg("471 " + nickname + " " + channelName + " :Cannot join channel (+l)\r\n");
-            continue;
-        }
-
-        // Ajout du membre
-        channel->AddMember(nickname);
-
-        // Broadcast JOIN à tous les membres du channel
-        std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
-        channel->Broadcast(joinMsg, clients);
-
-        // Envoi du topic s’il existe
-        if (!channel->GetTopic().empty())
-        {
-            client.sendMsg("332 " + nickname + " " + channelName + " :" + channel->GetTopic() + "\r\n"); // RPL_TOPIC
-        }
-
-        // Envoi de la liste des utilisateurs (RPL_NAMREPLY + RPL_ENDOFNAMES)
-        std::string names;
-        std::vector<std::string> members = channel->GetMembers();
-        for (size_t j = 0; j < members.size(); ++j)
-        {
-            if (channel->IsOperator(members[j]))
-                names += "@";
-            names += members[j] + " ";
-        }
-
-        client.sendMsg("353 " + nickname + " = " + channelName + " :" + names + "\r\n"); // RPL_NAMREPLY
-        client.sendMsg("366 " + nickname + " " + channelName + " :End of /NAMES list\r\n"); // RPL_ENDOFNAMES
-    }
-    
-};
-
-void Server::HandleMode(Client *client, const std::vector<std::string> &split, int fd)
+  
+void Server::mode(Client *client, const std::vector<std::string> &split, int fd)
 {
     if (split.size() < 3) 
     {
@@ -547,31 +388,29 @@ Channel* Server::GetChannel(const std::string& name)
 void Server::ReceiveNewData(int fd)
 {
     char buff[1024];
-    memset(buff, 0, sizeof(buff));
     ssize_t bytes = recv(fd, buff, sizeof(buff) - 1, 0);
+    buff[bytes] = 0;
     Client *tmp_client = GetClient(fd);
     if (!tmp_client)
         return;
-    std::vector<std::string> split;
-    if(bytes <= 0)
+    if (bytes <= 0)
     {
-        std::cout << "Client <" << fd<<"> disconnected" << std::endl;
-        CleanClients(fd);
+        std::cout << "Client <" << fd << "> disconnected" << std::endl;
+        CleanClient(fd);
         close(fd);
+        return;
     }
-    else
-    {
-        tmp_client->AddToBuffer(buff);
-        if(tmp_client->GetBuffer().find_first_of("\r\n") == std::string::npos)
-            return ;
-        split = SplitTmpBuffer(tmp_client->GetBuffer());
-        for(size_t i = 0; i < split.size(); i++)
-        {
-            this->ParseLaunch(split[i], fd);
-        }
-        if (split[0] != "QUIT")
-            tmp_client->ClearBuffer();
+    tmp_client->AddToBuffer(buff);
+    std::string line;
+    while (tmp_client->GetBuffer().find_first_of("\r\n") != std::string::npos) {
+       line = tmp_client->get_command();
+       //gerer la commande
+       std::cout << "commande : " << line << std::endl;
     }
+    // split = SplitTmpBuffer(tmp_client->GetBuffer());
+    // for (size_t i = 0; i < split.size(); i++)
+    //     this->ParseLaunch(split[i], fd);
+    // tmp_client->ClearBuffer();
 };
 
 void Server::AcceptNewClient()
@@ -582,22 +421,22 @@ void Server::AcceptNewClient()
     socklen_t len = sizeof(clientAdress);
 
     int incommingfd = accept(ServerSocketFD, (sockaddr *)&clientAdress, &len);
-    std::cout<<"INC FD " << incommingfd<<std::endl;
-    if(incommingfd == -1)
+    std::cout << "INC FD " << incommingfd << std::endl;
+    if (incommingfd == -1)
     {
         std::cout << "Accept() failed" << std::endl;
-        return ;
+        return;
     }
-    if(fcntl(incommingfd, F_SETFL, O_NONBLOCK) == -1)
+    if (fcntl(incommingfd, F_SETFL, O_NONBLOCK) == -1)
     {
         std::cout << "fcntl() failed" << std::endl;
-        return ;
+        return;
     }
     newFd.fd = incommingfd;
     newFd.events = POLLIN;
     newFd.revents = 0;
     fds.push_back(newFd);
-    
+
     newClient.SetFd(incommingfd);
     newClient.SetIpAdress(inet_ntoa(clientAdress.sin_addr));
     clients[incommingfd] = newClient;
@@ -614,15 +453,15 @@ void Server::ServerSocket()
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(this->Port);
-    
+
     ServerSocketFD = socket(AF_INET, SOCK_STREAM, 0);
-    if(ServerSocketFD == -1)
+    if (ServerSocketFD == -1)
         throw(std::runtime_error("socket() failed"));
-    if(setsockopt(ServerSocketFD, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == 1)
+    if (setsockopt(ServerSocketFD, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == 1)
         throw(std::runtime_error("setsockopt() failed to set option SO_REUSEADDR"));
-    if(bind(ServerSocketFD, (struct sockaddr *) &address, sizeof(address)) == -1)
+    if (bind(ServerSocketFD, (struct sockaddr *)&address, sizeof(address)) == -1)
         throw(std::runtime_error("failed to bind() socket"));
-    if(listen(ServerSocketFD, SOMAXCONN) == -1)
+    if (listen(ServerSocketFD, SOMAXCONN) == -1)
         throw(std::runtime_error("listen() failed"));
     newFd.fd = ServerSocketFD;
     newFd.events = POLLIN;
@@ -634,24 +473,21 @@ void Server::ServerInit()
 {
     //this->Port = 4444;
     ServerSocket();
-    std::cout<<"Server <" << ServerSocketFD << "> connected" << std::endl;
-    std::cout<<"Waiting for incomming connections..."<<std::endl;
-    while(Server::Signal == false)
+    std::cout << "Server <" << ServerSocketFD << "> connected" << std::endl;
+    std::cout << "Waiting for incomming connections..." << std::endl;
+    while (Server::Signal == false)
     {
-        if((poll(&fds[0], fds.size(), -1) == -1) && Server::Signal == false)
+        if ((poll(&fds[0], fds.size(), -1) == -1) && Server::Signal == false)
             throw(std::runtime_error("poll() failed"));
-        else
-        {
-            for(size_t i = 0; i < fds.size(); i++)
-            {
-                if(fds[i].revents & POLLIN)
-                {
-                    if(fds[i].fd == ServerSocketFD)
-                        AcceptNewClient();
-                    else
-                        ReceiveNewData(fds[i].fd);
 
-                }
+        for (size_t i = 0; i < fds.size(); i++)
+        {
+            if (fds[i].revents & POLLIN)
+            {
+                if (fds[i].fd == ServerSocketFD)
+                    AcceptNewClient();
+                else
+                    ReceiveNewData(fds[i].fd);
             }
         }
     }

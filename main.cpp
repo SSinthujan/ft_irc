@@ -21,8 +21,8 @@ int main(int ac, char **av)
 	Server ser;
 	try
 	{
-		signal(SIGINT, Server::SignalHadler); //-> catch the signal (ctrl + c)
-		signal(SIGQUIT, Server::SignalHadler);
+		signal(SIGINT, Server::SignalHandler); //-> catch the signal (ctrl + c)
+		signal(SIGQUIT, Server::SignalHandler);
 		ser.inputCheck(ac, av);
 		std::cout << "---- SERVER ----" << std::endl; //-> catch the signal (ctrl + \)
 		ser.ServerInit(); //-> initialize the server

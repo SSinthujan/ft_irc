@@ -35,7 +35,7 @@ class Client
         bool buser;
         bool nick;
     public:
-        Client(){nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; Fd = -1;};
+        Client(){nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
         
         int GetFd(){return Fd;};
         int GetPass(){return pass;};
@@ -61,6 +61,7 @@ class Client
         std::string GetUsername(){return username;};
         std::string GetIpAddress(){return IpAddress;};
         void sendMsg(const std::string &msg) const;
+        std::string get_command();
 
 
 

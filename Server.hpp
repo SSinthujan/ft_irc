@@ -48,43 +48,43 @@ class Server
         bool quit_flag;
     
     public:
-        //Sever Starter
+        //StartServer 
         Server();
         void inputCheck(int ac, char **av);
         void ServerSocket();
         void ServerInit();
+        void parseCmd(std::string &str);
         
         //Client Calls
         void AcceptNewClient();
         void ReceiveNewData(int fd);
-        void ParseLaunch(std::string &o, int);
-        std::vector<std::string> SplitCmd(std::string &s);
 
         //Channel
         bool CheckIfChannelExists(std::string);
-        void HandleMode(Client *client, const std::vector<std::string> &split, int fd);
+
         void Names(Client &client, std::vector<std::string> str, int fd);
 
         //Signal
-        static void SignalHadler(int signum);
+        static void SignalHandler(int signum);
 
         //Getters
         Client* GetClient(int fd);
         std::string GetPassword(){return serverPassword;};
         Channel* GetChannel(const std::string& name);
+  
         //Close
         void CloseFds();
-        void CleanClients(int fds);
-
-        //QUIT
-        void Quit(Client &client, std::vector<std::string> str, int fd);
+        void CleanClient(int fds);
 
         //Else
         std::vector<std::string> SplitTmpBuffer(std::string);
 
         //Cmds
-
-        void Join(Client &client ,std::vector<std::string> str, int fd);
+        void nick(Client &client, std::string &str);
+        void join(Client &client ,std::vector<std::string> &str, int fd);
+        void quit(Client &client, std::vector<std::string> str, int fd);
+        void mode(Client *client, const std::vector<std::string> &split, int fd);
+        void names(Client &client, std::vector<std::string> str, int fd)
 };
 
 
