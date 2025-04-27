@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 20:46:06 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 03:38:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Client
         bool buser;
         bool nick;
     public:
-        Client(){nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname";};
+        Client(){nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; Fd = -1;};
         
         int GetFd(){return Fd;};
         int GetPass(){return pass;};

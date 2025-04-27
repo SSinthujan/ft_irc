@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 21:12:30 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 04:35:21 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 Server::Server()
 {
     ServerSocketFD = -1;
+    this->quit_flag = false;
 }
 
 void Server::inputCheck(int ac, char **av)
@@ -224,6 +225,14 @@ void Server::ParseLaunch(std::string &str, int fd)
         if (tmp->GetRegistered())
             HandleMode(tmp, split, fd);
     }
+    else if (split[0] == "QUIT")
+    {
+        if (tmp->GetRegistered())
+        {
+            Quit(*tmp, split, fd);
+            this->quit_flag = true;
+        }
+    }
     else
     {
         std::cout << "Unknown command: " << split[0] << std::endl;
@@ -250,6 +259,55 @@ bool Server::CheckIfChannelExists(std::string str)
     return channels.find(str) != channels.end();
 };
 
+void Server::Quit(Client &client, std::vector<std::string> str, int fd)
+{
+    std::string reason;
+    if (str.size() > 1)
+    {
+        for (size_t i = 1; i < str.size(); ++i)
+        {
+            reason += str[i];
+            if (i != str.size() - 1)
+                reason += " ";
+        }
+        if (!reason.empty() && reason[0] == ':')
+            reason = reason.substr(1);
+    }
+    else
+        reason = "Client quit";
+    std::cout << "Client <" << fd << "> disconnected (" << reason << ")" << std::endl;
+    //BroadcastQuitMessage(clientFd, reason);
+    
+    for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); )
+    {
+        Channel& channel = it->second;
+        
+        // Vérifie si le client est dans ce channel
+        if (channel.HasMember(client.GetNickname()))
+        {
+            channel.RemoveMember(client.GetNickname());
+
+            // Broadcast aux autres membres que ce client a QUIT (optionnel, si tu veux faire propre)
+            // channel.Broadcast(client, ":" + client.GetNickname() + " QUIT :" + reason);
+        }
+
+        // Après suppression, si le channel est vide -> on le supprime
+        if (channel.IsEmpty())
+        {
+            std::map<std::string, Channel>::iterator tmp = it;
+            ++it;
+            channels.erase(tmp); // Attention: erase retourne le nouvel itérateur
+        }
+        else
+        {
+            ++it; // sinon, on avance normalement
+        }
+    }
+    CleanClients(fd);
+    close(fd);
+  
+}
+
 void Server::Join(Client &client ,std::vector<std::string> str, int fd)
 {
     (void)fd;
@@ -258,10 +316,7 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
     std::string nickname = client.GetNickname();
     
     if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
-    {
-        std::cout<<"CANT JOIN"<< std::endl;
         return ;
-    }
     channelsToJoin = SplitByComma(str[1]);
     if (str.size() > 2)
         keys = SplitByComma(str[2]);
@@ -455,6 +510,8 @@ void Server::ReceiveNewData(int fd)
     memset(buff, 0, sizeof(buff));
     ssize_t bytes = recv(fd, buff, sizeof(buff) - 1, 0);
     Client *tmp_client = GetClient(fd);
+    if (!tmp_client)
+        return;
     std::vector<std::string> split;
     if(bytes <= 0)
     {
@@ -469,8 +526,11 @@ void Server::ReceiveNewData(int fd)
             return ;
         split = SplitTmpBuffer(tmp_client->GetBuffer());
         for(size_t i = 0; i < split.size(); i++)
+        {
             this->ParseLaunch(split[i], fd);
-        tmp_client->ClearBuffer();
+        }
+        if (split[0] != "QUIT")
+            tmp_client->ClearBuffer();
     }
 };
 

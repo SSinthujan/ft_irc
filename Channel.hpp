@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/26 13:45:34 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 03:26:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,11 +51,12 @@ class Channel
    
            // === Gestion des membres
            void AddMember(std::string &nickname);
-           void RemoveMember(std::string &nickname);
-           bool HasMember(std::string const &nickname) const;
+           void RemoveMember(const std::string &nickname);
+           bool HasMember(const std::string  &nickname);
            std::vector<std::string> GetMembers() const;
            bool IsFull() const;
            void SetMaxUsers(int n) { maxUsers = n; };
+           bool IsEmpty() const;
    
            // === Gestion des opérateurs
            int CheckRole(std::string name);

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/24 15:16:52 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 04:25:17 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class Server
 
         std::string _portStr;
         std::string _password;
+        bool quit_flag;
     
     public:
         //Sever Starter
@@ -73,6 +74,9 @@ class Server
         //Close
         void CloseFds();
         void CleanClients(int fds);
+
+        //QUIT
+        void Quit(Client &client, std::vector<std::string> str, int fd);
 
         //Else
         std::vector<std::string> SplitTmpBuffer(std::string);

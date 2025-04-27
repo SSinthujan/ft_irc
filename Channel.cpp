@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/24 15:21:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/27 03:27:08 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,12 +65,12 @@ void Channel::AddMember(std::string &nickname)
         members[nickname] = 1; // 1 = membre standard
 }
 
-void Channel::RemoveMember(std::string &nickname)
+void Channel::RemoveMember(const std::string &nickname)
 {
     members.erase(nickname);
 }
 
-bool Channel::HasMember(std::string const &nickname) const
+bool Channel::HasMember(std::string const &nickname)
 {
     return members.find(nickname) != members.end();
 }
@@ -132,3 +132,7 @@ std::vector<std::string> Channel::GetMembers() const
     return list;
 }
 
+bool Channel::IsEmpty() const
+{
+    return members.empty();
+}
