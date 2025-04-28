@@ -97,7 +97,7 @@ bool Server::CheckIfChannelExists(std::string str)
     return channels.find(str) != channels.end();
 };
 
-void parseCmd(std::string &str){
+void Server::parseCmd(std::string &str, int client_fd){
     std::string prefix;
     std::string cmd;
     std::string suffix;
@@ -139,7 +139,7 @@ void parseCmd(std::string &str){
         
     }
     else if (cmd == "NAMES"){
-     
+    
     }
     else if (cmd == "NICK"){
         
@@ -151,10 +151,7 @@ void parseCmd(std::string &str){
         
     }
     else if (cmd == "PART"){
-        
-    }
-    else if (cmd == "PASS"){
-        
+        nick(args);
     }
     else if (cmd == "PASS"){
         
@@ -182,9 +179,8 @@ void parseCmd(std::string &str){
     }
 }
 
-void Server::nick(Client &client, std::string &str){
-    client.SetNickname(str);
-    std::cout << 
+void Server::nick(Client &client, std::string &nick, int fd){
+    client.SetNickname(nick);
 }
 
 void Server::join(Client &client ,std::vector<std::string> &str, int fd)
@@ -269,7 +265,7 @@ void Server::quit(Client &client, std::vector<std::string> str, int fd)
             ++it; // sinon, on avance normalement
         }
     }
-    CleanClients(fd);
+    CleanClient(fd);
     close(fd);
 }
   

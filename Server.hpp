@@ -53,7 +53,6 @@ class Server
         void inputCheck(int ac, char **av);
         void ServerSocket();
         void ServerInit();
-        void parseCmd(std::string &str);
         
         //Client Calls
         void AcceptNewClient();
@@ -61,8 +60,6 @@ class Server
 
         //Channel
         bool CheckIfChannelExists(std::string);
-
-        void Names(Client &client, std::vector<std::string> str, int fd);
 
         //Signal
         static void SignalHandler(int signum);
@@ -80,7 +77,8 @@ class Server
         std::vector<std::string> SplitTmpBuffer(std::string);
 
         //Cmds
-        void nick(Client &client, std::string &str);
+        void parseCmd(std::string &str, int client_fd);
+        void nick(Client &client, std::string &nick, int fd);
         void join(Client &client ,std::vector<std::string> &str, int fd);
         void quit(Client &client, std::vector<std::string> str, int fd);
         void mode(Client *client, const std::vector<std::string> &split, int fd);
