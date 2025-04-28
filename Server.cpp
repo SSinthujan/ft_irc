@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 20:07:53 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 20:38:50 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,7 +327,7 @@ void Server::Privmsg(Client &client, std::vector<std::string> str)
     {
         if (!CheckIfChannelExists(str[1]))
         {
-            std::string error = "403 " + client.GetNickname() + " " + str[1] + " :No such channel\r\n";
+            std::string error = ":" + std::string("irc.server 403 ")+ client.GetNickname() + " " + str[1] + " :No such channel\r\n";
             client.sendMsg(error);
             return;
         }
@@ -343,11 +343,10 @@ void Server::Privmsg(Client &client, std::vector<std::string> str)
         Client* target = GetClientByNickname(str[1]);
         if (!target)
         {
-            std::string error = "401 " + client.GetNickname() + " " + str[1] + " :No such nick/channel\r\n";
+            std::string error = ":" + std::string("irc.server 401 ") + client.GetNickname() + " " + str[1] + " :No such nick/channel\r\n";
             send(client.GetFd(),error.c_str(), error.length(), 0);
             return;
         }
-
         send(target->GetFd(),fullmsg.c_str(), fullmsg.length(), 0);
     }
 }
