@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 02:29:49 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 16:18:06 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,7 +296,8 @@ void Server::Kick(Client &client, std::vector<std::string> str)
         return;
     if (!(channel.HasMember(name)))
         return;
-    std::string kickMessage = ": @" + client.GetNickname() + " KICK " + channelsToKick + " " + name + " :" + motif + "\r\n";
+    std::string prefix = client.GetNickname() + "!user@localhost";
+    std::string kickMessage = ":" + prefix + " KICK " + channelsToKick + " " + name + " :" + motif + "\r\n";
     channel.Broadcast(kickMessage, clients);
     channel.RemoveMember(name);
     std::cout << "\033[32mKICK command has been detected\033[0m" << std::endl;
