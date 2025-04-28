@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 16:18:06 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 17:49:58 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,6 +249,13 @@ void Server::ParseLaunch(std::string &str, int fd)
             Kick(*tmp, split);
         }
     }
+    else if (split[0] == "INVITE")
+    {
+        if (tmp->GetRegistered())
+        {
+            Invite(*tmp, split);
+        }
+    }
     else
     {
         std::cout << "Unknown command: " << split[0] << std::endl;
@@ -274,6 +281,51 @@ bool Server::CheckIfChannelExists(std::string str)
 {
     return channels.find(str) != channels.end();
 };
+
+Client* Server::GetClientByNickname(const std::string& nickname)
+{
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (it->second.GetNickname() == nickname)
+            return &(it->second);
+    }
+    return NULL;
+}
+
+void Server::Invite(Client &client, std::vector<std::string> str)
+{
+    if (str.size() < 3 || str[1].empty() || str[2].empty())
+        return ;
+    std::string channelsToInvit;
+    std::string name;
+
+    name = str[2];
+    channelsToInvit = str[1];
+    if (!CheckIfChannelExists(channelsToInvit))
+        return;
+    Channel& channel = channels[channelsToInvit];
+    if (!(channel.HasMember(client.GetNickname())))
+        return;
+   if (channel.HasMember(name))
+        return;
+    if (channel.CheckInviteOnly())
+        if (!(channel.IsOperator(client.GetNickname())))
+            return;
+    if (channel.IsFull())
+        return;
+    Client* invitedClient = GetClientByNickname(name);
+    if (invitedClient)
+    {
+        channel.AddMember(name, invitedClient->GetFd());
+        std::string inviteMsg = ":" + client.GetNickname() + "!" + client.GetUsername() + "@" + "localhost" +
+        " INVITE " + name + " :" + channelsToInvit + "\r\n";
+        invitedClient->sendMsg(inviteMsg);
+        std::string joinMsg = ":" + name + " JOIN " + channelsToInvit + "\r\n";
+        channel.Broadcast(joinMsg, clients);
+    }
+
+    std::cout << "\033[32mINVITE command has been detected\033[0m" << std::endl;
+}
 
 void Server::Kick(Client &client, std::vector<std::string> str)
 {

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 21:51:30 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 17:32:13 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,8 @@ class Server
         void HandleMode(Client *client, const std::vector<std::string> &split, int fd);
         void Names(Client &client, std::vector<std::string> str, int fd);
         void Kick(Client &client, std::vector<std::string> str);
-
+        void Invite(Client &client, std::vector<std::string> str);
+        
         //Signal
         static void SignalHadler(int signum);
 
@@ -76,6 +77,7 @@ class Server
         //Close
         void CloseFds();
         void CleanClients(int fds);
+        Client* GetClientByNickname(const std::string& nickname);
 
         //QUIT
         void Quit(Client &client, std::vector<std::string> str, int fd);
