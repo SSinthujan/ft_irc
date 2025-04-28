@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 03:26:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 01:23:43 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class Channel
            // === Informations générales
            std::string& GetChannelName()  { return channelName; };
            void SetChannelName(std::string &s) { channelName = s; };
+           const std::map<std::string, int>& GetMembers2() const;
    
            // === Gestion du topic
            std::string GetTopic() { return topic; };
@@ -50,7 +51,7 @@ class Channel
            bool IsTopicRestricted() const { return topicRestricted; };
    
            // === Gestion des membres
-           void AddMember(std::string &nickname);
+           void AddMember(std::string &nickname, int fd);
            void RemoveMember(const std::string &nickname);
            bool HasMember(const std::string  &nickname);
            std::vector<std::string> GetMembers() const;

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 03:27:08 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 02:22:22 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,10 @@ bool Channel::IsOperator(std::string const &nickname) const
 }
 
 // === Gestion des membres ===
-void Channel::AddMember(std::string &nickname)
+void Channel::AddMember(std::string &nickname, int fd)
 {
     if (members.size() < (size_t)maxUsers || maxUsers == -1)
-        members[nickname] = 1; // 1 = membre standard
+        members[nickname] = fd; // 1 = membre standard
 }
 
 void Channel::RemoveMember(const std::string &nickname)
@@ -136,3 +136,9 @@ bool Channel::IsEmpty() const
 {
     return members.empty();
 }
+
+const std::map<std::string, int> &Channel::GetMembers2() const
+{
+    return members;
+}
+

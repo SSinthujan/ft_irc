@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 20:49:40 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 02:29:49 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,6 +181,7 @@ void Server::ParseLaunch(std::string &str, int fd)
             std::string oldNick = tmp->GetNickname();
             tmp->SetNickname(split[1]);
             tmp->SetNick(true);
+            std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
         }
     }
     else if(split[0] == "USER" && split.size() > 4)
@@ -203,6 +204,7 @@ void Server::ParseLaunch(std::string &str, int fd)
         {
             std::string response = "PONG :" + split[1] + "\r\n";
             send(tmp->GetFd(), response.c_str(), response.length(), 0);
+            std::cout << "\033[32mPING command has been detected\033[0m" << std::endl;
         }
     }
     else if(split[0] == "PASS")
@@ -244,7 +246,7 @@ void Server::ParseLaunch(std::string &str, int fd)
     {
         if (tmp->GetRegistered())
         {
-            Kick(*tmp, split, fd);
+            Kick(*tmp, split);
         }
     }
     else
@@ -273,19 +275,18 @@ bool Server::CheckIfChannelExists(std::string str)
     return channels.find(str) != channels.end();
 };
 
-void Server::Kick(Client &client, std::vector<std::string> str, int fd)
+void Server::Kick(Client &client, std::vector<std::string> str)
 {
-    if (str.size() < 2 || str[1].empty() || str[1][0] == ' ')
+    if (str.size() < 3 || str[1].empty() || str[2].empty())
         return ;
-    (void)fd;
     std::string channelsToKick;
     std::string name;
     std::string motif;
-    
+
     name = str[2];
     channelsToKick = str[1];
-    if (str.size() > 2)
-        std::string motif = str[3];
+    if (str.size() > 3)
+        motif = str[3];
     else
         motif = "banned from the channel";
     if (!CheckIfChannelExists(channelsToKick))
@@ -295,9 +296,10 @@ void Server::Kick(Client &client, std::vector<std::string> str, int fd)
         return;
     if (!(channel.HasMember(name)))
         return;
-    channel.RemoveMember(name);
     std::string kickMessage = ": @" + client.GetNickname() + " KICK " + channelsToKick + " " + name + " :" + motif + "\r\n";
     channel.Broadcast(kickMessage, clients);
+    channel.RemoveMember(name);
+    std::cout << "\033[32mKICK command has been detected\033[0m" << std::endl;
 }
 
 void Server::Names(Client &client, std::vector<std::string> str, int fd)
@@ -315,14 +317,14 @@ void Server::Names(Client &client, std::vector<std::string> str, int fd)
         if (CheckIfChannelExists(channelName))
         {
             Channel& channel = channels[channelName];
-            std::vector<std::string> members = channel.GetMembers();
+            const std::map<std::string, int>& channelMembers = channel.GetMembers2();
             std::string response = ":" + std::string("irc.server 353 ") + client.GetNickname() + " = " + channelName + " :";
-            for (std::vector<std::string>::iterator it = members.begin(); it != members.end(); ++it)
+            for (std::map<std::string, int>::const_iterator it = channelMembers.begin(); it != channelMembers.end(); ++it)
             {
-                std::size_t index = std::distance(members.begin(), it);
-                if (channel.IsOperator(members[index]))
+                const std::string &nickname = it->first;
+                if (channel.IsOperator(nickname))
                     response += "@";
-                response += *it + " ";
+                response += nickname + " ";
             }
             response += "\r\n";
             send(fd, response.c_str(), response.length(), 0);
@@ -330,6 +332,7 @@ void Server::Names(Client &client, std::vector<std::string> str, int fd)
             send(fd, endResponse.c_str(), endResponse.length(), 0);
         }
     }
+    std::cout << "\033[32mNAMES command has been detected\033[0m" << std::endl;
     
 }
 
@@ -349,8 +352,9 @@ void Server::Quit(Client &client, std::vector<std::string> str, int fd)
     }
     else
         reason = "Client quit";
+    std::cout << "\033[32mQUIT command has been detected\033[0m" << std::endl;
     std::cout << "Client <" << fd << "> disconnected (" << reason << ")" << std::endl;
-    //BroadcastQuitMessage(clientFd, reason);
+    std::string msg = client.GetNickname() + " disconnected (" + reason + ")\r\n";
     
     for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); )
     {
@@ -360,9 +364,7 @@ void Server::Quit(Client &client, std::vector<std::string> str, int fd)
         if (channel.HasMember(client.GetNickname()))
         {
             channel.RemoveMember(client.GetNickname());
-
-            // Broadcast aux autres membres que ce client a QUIT (optionnel, si tu veux faire propre)
-            // channel.Broadcast(client, ":" + client.GetNickname() + " QUIT :" + reason);
+            channel.Broadcast(msg, clients);
         }
 
         // Après suppression, si le channel est vide -> on le supprime
@@ -374,7 +376,7 @@ void Server::Quit(Client &client, std::vector<std::string> str, int fd)
         }
         else
         {
-            ++it; // sinon, on avance normalement
+            ++it;
         }
     }
     CleanClients(fd);
@@ -389,11 +391,12 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
     std::vector<std::string> keys;
     std::string nickname = client.GetNickname();
     
-    if(str.size() < 1 || str[1].empty() || str[1][0] == ' ')
+    if(str.size() < 2 || str[1].empty() || str[1][0] == ' ')
         return ;
     channelsToJoin = SplitByComma(str[1]);
     if (str.size() > 2)
         keys = SplitByComma(str[2]);
+    std::cout << "\033[32mJOIN command has been detected\033[0m" << std::endl;
     for (size_t i = 0; i < channelsToJoin.size(); ++i)
     {
         std::string channelName = channelsToJoin[i];
@@ -438,7 +441,7 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
         }
 
         // Ajout du membre
-        channel->AddMember(nickname);
+        channel->AddMember(nickname, fd);
 
         // Broadcast JOIN à tous les membres du channel
         std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
@@ -560,7 +563,7 @@ void Server::HandleMode(Client *client, const std::vector<std::string> &split, i
             }
         }
     }
-
+    std::cout << "\033[32mMODE command has been detected\033[0m" << std::endl;
     // Broadcast aux membres du canal le changement de mode
     std::string msg = ":" + client->GetNickname() + " MODE " + channelName + " " + modeChanges;
     for (size_t i = 3; i < split.size(); ++i) {
