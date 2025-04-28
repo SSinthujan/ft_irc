@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 17:49:58 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 20:07:53 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,10 +178,18 @@ void Server::ParseLaunch(std::string &str, int fd)
     {
         if (tmp->GetPass())
         {
-            std::string oldNick = tmp->GetNickname();
-            tmp->SetNickname(split[1]);
-            tmp->SetNick(true);
-            std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
+            if (split[1][0] != '#')
+            {
+                std::string oldNick = tmp->GetNickname();
+                tmp->SetNickname(split[1]);
+                tmp->SetNick(true);
+                std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
+            }
+            else
+            {
+                std::string response = ":irc.server 432" + split[1] + " :Erroneus nickname"+"\r\n";
+                send(tmp->GetFd(), response.c_str(), response.length(), 0);
+            }
         }
     }
     else if(split[0] == "USER" && split.size() > 4)
@@ -256,6 +264,13 @@ void Server::ParseLaunch(std::string &str, int fd)
             Invite(*tmp, split);
         }
     }
+    else if (split[0] == "PRIVMSG")
+    {
+        if (tmp->GetRegistered())
+        {
+            Privmsg(*tmp, split);
+        }
+    }
     else
     {
         std::cout << "Unknown command: " << split[0] << std::endl;
@@ -290,6 +305,51 @@ Client* Server::GetClientByNickname(const std::string& nickname)
             return &(it->second);
     }
     return NULL;
+}
+
+void Server::Privmsg(Client &client, std::vector<std::string> str)
+{
+    if (str.size() < 3 || str[1].empty() || str[2].empty())
+        return;
+
+    std::cout << "\033[32mPRIVMSG command has been detected\033[0m" << std::endl;
+    std::string message;
+    for (size_t i = 2; i < str.size(); ++i)
+    {
+        message += str[i];
+        if (i != str.size() - 1)
+            message += " ";
+    }
+
+    std::string prefix = ":" + client.GetNickname() + "!" + client.GetUsername() + "@localhost";
+    std::string fullmsg = prefix + " PRIVMSG " + str[1] + " :" + message + "\r\n";
+    if (str[1][0] == '#')
+    {
+        if (!CheckIfChannelExists(str[1]))
+        {
+            std::string error = "403 " + client.GetNickname() + " " + str[1] + " :No such channel\r\n";
+            client.sendMsg(error);
+            return;
+        }
+
+        Channel& channel = channels[str[1]];
+        if (!channel.HasMember(client.GetNickname()))
+            return;
+
+        channel.Broadcast2(fullmsg, clients, client.GetNickname());
+    }
+    else
+    {
+        Client* target = GetClientByNickname(str[1]);
+        if (!target)
+        {
+            std::string error = "401 " + client.GetNickname() + " " + str[1] + " :No such nick/channel\r\n";
+            send(client.GetFd(),error.c_str(), error.length(), 0);
+            return;
+        }
+
+        send(target->GetFd(),fullmsg.c_str(), fullmsg.length(), 0);
+    }
 }
 
 void Server::Invite(Client &client, std::vector<std::string> str)
@@ -453,6 +513,8 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
     for (size_t i = 0; i < channelsToJoin.size(); ++i)
     {
         std::string channelName = channelsToJoin[i];
+        if (channelName[0] != '#')
+            channelName = "#" + channelName;
         std::string key = (i < keys.size()) ? keys[i] : "";
     
         Channel* channel;

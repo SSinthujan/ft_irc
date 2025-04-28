@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 01:23:43 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 19:48:36 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ class Channel
 
            //msg
            void Broadcast(const std::string &msg, const std::map<int, Client> &clients);
+           void Broadcast2(const std::string &msg, const std::map<int, Client> &clients, const std::string& sender);
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 02:22:22 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 19:50:29 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,25 @@ void Channel::Broadcast(const std::string &msg, const std::map<int, Client> &cli
     for (std::map<std::string, int>::iterator it = members.begin(); it != members.end(); ++it)
     {
         int fd = it->second;
+        std::map<int, Client>::const_iterator cli = clients.find(fd);
+        if (cli != clients.end())
+        {
+            cli->second.sendMsg(msg);
+        }
+    }
+}
+
+void Channel::Broadcast2(const std::string &msg, const std::map<int, Client> &clients, const std::string& sender)
+{
+    for (std::map<std::string, int>::const_iterator it = members.begin(); it != members.end(); ++it)
+    {
+        const std::string& nickname = it->first;
+        int fd = it->second;
+
+        // On ne renvoie pas au sender
+        if (nickname == sender)
+            continue;
+
         std::map<int, Client>::const_iterator cli = clients.find(fd);
         if (cli != clients.end())
         {
