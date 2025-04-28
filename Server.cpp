@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 20:38:50 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/28 23:11:50 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,6 +183,8 @@ void Server::ParseLaunch(std::string &str, int fd)
                 std::string oldNick = tmp->GetNickname();
                 tmp->SetNickname(split[1]);
                 tmp->SetNick(true);
+                std::string nickMsg = ":" + oldNick + "!user@host NICK :" + tmp->GetNickname() + "\r\n";
+                send(tmp->GetFd(), nickMsg.c_str(), nickMsg.length(), 0);
                 std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
             }
             else
@@ -320,9 +322,10 @@ void Server::Privmsg(Client &client, std::vector<std::string> str)
         if (i != str.size() - 1)
             message += " ";
     }
-
     std::string prefix = ":" + client.GetNickname() + "!" + client.GetUsername() + "@localhost";
+    std::string prefix2 = ":" + client.GetNickname();
     std::string fullmsg = prefix + " PRIVMSG " + str[1] + " :" + message + "\r\n";
+    std::string fullmsg2 = prefix2 + " PRIVMSG " + str[1] + " :" + message + "\r\n";
     if (str[1][0] == '#')
     {
         if (!CheckIfChannelExists(str[1]))
@@ -343,11 +346,11 @@ void Server::Privmsg(Client &client, std::vector<std::string> str)
         Client* target = GetClientByNickname(str[1]);
         if (!target)
         {
-            std::string error = ":" + std::string("irc.server 401 ") + client.GetNickname() + " " + str[1] + " :No such nick/channel\r\n";
-            send(client.GetFd(),error.c_str(), error.length(), 0);
+            std::string error = ":" + std::string("irc.server 401 ")+ client.GetNickname() + " " + str[1] + " :No such nick\r\n";
+            client.sendMsg(error);
             return;
         }
-        send(target->GetFd(),fullmsg.c_str(), fullmsg.length(), 0);
+        target->sendMsg(fullmsg2);
     }
 }
 
