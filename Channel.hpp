@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 01:36:28 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 02:38:17 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,7 @@ class Channel
            void RemoveInviteOnly() { inviteOnly = false; };
            bool CheckInviteOnly() { return inviteOnly; };
            void AddInvite(std::string const &nickname);
+           void AddMemberInvite(std::string &nickname, int fd);
            bool IsInvited(std::string const &nickname) const;
            void RemoveInvite(std::string const &nickname);
            void SetUserLimit(int limit) { maxUsers = limit; };

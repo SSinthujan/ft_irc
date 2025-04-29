@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 01:36:28 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 02:37:57 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,11 @@ void Channel::AddMember(std::string &nickname, int fd)
 {
     if (members.size() < (size_t)maxUsers || maxUsers == -1)
         members[nickname] = fd; // 1 = membre standard
+}
+
+void Channel::AddMemberInvite(std::string &nickname, int fd)
+{
+        members[nickname] = fd;
 }
 
 void Channel::RemoveMember(const std::string &nickname)
