@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 03:13:41 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 03:56:18 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,7 +235,7 @@ void Server::ParseLaunch(std::string &str, int fd)
     else if (split[0] == "MODE")
     {
         if (tmp->GetRegistered())
-            HandleMode(tmp, split, fd);
+            Mode(tmp, split, fd);
     }
     else if (split[0] == "QUIT")
     {
@@ -281,8 +281,12 @@ void Server::ParseLaunch(std::string &str, int fd)
         }
     }
     else
-    {
-        std::cout << "Unknown command: " << split[0] << std::endl;
+    {   if (tmp->GetRegistered())
+        {
+            std::cout << "Unknown command: " << split[0] << std::endl;
+            std::string error = ":" + std::string("irc.server 421 ") + tmp->GetNickname() + " " + str[0] + " :Unknown command\r\n";
+            tmp->sendMsg(error);
+        }
     }
 };
 
@@ -677,7 +681,7 @@ void Server::Join(Client &client ,std::vector<std::string> str, int fd)
     
 };
 
-void Server::HandleMode(Client *client, const std::vector<std::string> &split, int fd)
+void Server::Mode(Client *client, const std::vector<std::string> &split, int fd)
 {
     if (split.size() < 3) 
     {
