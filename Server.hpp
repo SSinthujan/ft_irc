@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 03:23:32 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 17:22:58 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,7 @@ class Server
         void Invite(Client &client, std::vector<std::string> str, int fd);
         void Privmsg(Client &client, std::vector<std::string> str, int fd);
         void Topic(Client &client, std::vector<std::string> str, int fd);
+        void Part(Client &client, std::vector<std::string> str, int fd);
         //Signal
         static void SignalHadler(int signum);
 

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:10 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 03:38:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 18:02:52 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ class Client
         void SetIpAdress(std::string IpAdr){IpAddress = IpAdr;};
         void ClearBuffer(){true_buffer.clear();};
         std::string GetNickname()const {return nickname;};
+        std::string GetUsername()const {return username;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
         std::string GetUsername(){return username;};

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 03:56:18 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 18:37:11 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,22 +174,43 @@ void Server::ParseLaunch(std::string &str, int fd)
         std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
         send(tmp->GetFd(), response.c_str(), response.length(), 0); 
     }
-    else if(split[0] == "NICK" && split.size() > 1)
+    else if (split[0] == "NICK" && split.size() > 1)
     {
         if (tmp->GetPass())
         {
             if (split[1][0] != '#')
             {
-                std::string oldNick = tmp->GetNickname();
-                tmp->SetNickname(split[1]);
-                tmp->SetNick(true);
-                std::string nickMsg = ":" + oldNick + "!user@host NICK :" + tmp->GetNickname() + "\r\n";
-                send(tmp->GetFd(), nickMsg.c_str(), nickMsg.length(), 0);
-                std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
+                bool nicknameInUse = false;
+                for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+                {
+                    if (it->second.GetNickname() == split[1])
+                    {
+                        nicknameInUse = true;
+                        break;
+                    }
+                }
+
+                if (nicknameInUse)
+                {
+                    // Nickname déjà pris, envoie 433
+                    std::string response = ":irc.server 433 * " + split[1] + " :Nickname is already in use\r\n";
+                    send(tmp->GetFd(), response.c_str(), response.length(), 0);
+                }
+                else
+                {
+                    // Nickname libre, on le change
+                    std::string oldNick = tmp->GetNickname();
+                    tmp->SetNickname(split[1]);
+                    tmp->SetNick(true);
+                    std::string nickMsg = ":" + oldNick + "!user@host NICK :" + tmp->GetNickname() + "\r\n";
+                    send(tmp->GetFd(), nickMsg.c_str(), nickMsg.length(), 0);
+                    std::cout << ":" << tmp->GetNickname() << "!@ NICK " << tmp->GetNickname() << std::endl;
+                }
             }
             else
             {
-                std::string response = ":irc.server 432" + split[1] + " :Erroneus nickname"+"\r\n";
+                // Nick invalide (commence par #)
+                std::string response = ":irc.server 432 * " + split[1] + " :Erroneus nickname\r\n";
                 send(tmp->GetFd(), response.c_str(), response.length(), 0);
             }
         }
@@ -280,6 +301,13 @@ void Server::ParseLaunch(std::string &str, int fd)
             Topic(*tmp, split, fd);
         }
     }
+    else if (split[0] == "PART")
+    {
+        if (tmp->GetRegistered())
+        {
+            Part(*tmp, split, fd);
+        }
+    }
     else
     {   if (tmp->GetRegistered())
         {
@@ -318,6 +346,45 @@ Client* Server::GetClientByNickname(const std::string& nickname)
             return &(it->second);
     }
     return NULL;
+}
+void Server::Part(Client &client, std::vector<std::string> str, int fd)
+{
+    (void)fd;
+    std::string subject;
+    if (str.size() < 2 || str[1].empty())
+        return;
+    std::cout << "\033[32mPART command has been detected\033[0m" << std::endl;
+    if (!CheckIfChannelExists(str[1]))
+    {
+        std::string error = ":" + std::string("irc.server 403 ")+ client.GetNickname() + " " + str[1] + " :No such channel\r\n";
+        client.sendMsg(error);
+        return;
+    }
+    Channel& channel = channels[str[1]];
+    if (!channel.HasMember(client.GetNickname()))
+    {
+        std::string error1 = ":" + std::string("irc.server 442 ") + client.GetNickname() + " " + str[1] + " :You're not on that channel\r\n";
+        client.sendMsg(error1);
+        return;
+    }
+    if (str.size() > 2)
+    {
+        for (size_t i = 2; i < str.size(); ++i)
+        {
+            subject += str[i];
+            if (i != str.size() - 1)
+                subject += " ";
+        }
+    }
+    std::string prefix = client.GetNickname() + "!" + client.GetUsername() + "@localhost";
+    std::string partMsg;
+    if (str.size() > 2)
+        partMsg = ":" + prefix + " PART " + str[1] + " " + " :" + subject + "\r\n";
+    else
+        partMsg = ":" + prefix + " PART " + str[1] + "\r\n";
+    channel.Broadcast(partMsg, clients);
+    channel.RemoveMember(client.GetNickname());
+
 }
 
 void Server::Topic(Client &client, std::vector<std::string> str, int fd)
@@ -500,7 +567,7 @@ void Server::Kick(Client &client, std::vector<std::string> str, int fd)
         client.sendMsg(error2);
         return;
     }
-    std::string prefix = client.GetNickname() + "!user@localhost";
+    std::string prefix = client.GetNickname() + "!" + client.GetUsername() + "@localhost";
     std::string kickMessage = ":" + prefix + " KICK " + channelsToKick + " " + name + " :" + motif + "\r\n";
     channel.Broadcast(kickMessage, clients);
     channel.RemoveMember(name);
