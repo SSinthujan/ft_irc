@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/29 02:42:59 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 03:13:41 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,28 +256,28 @@ void Server::ParseLaunch(std::string &str, int fd)
     {
         if (tmp->GetRegistered())
         {
-            Kick(*tmp, split);
+            Kick(*tmp, split, fd);
         }
     }
     else if (split[0] == "INVITE")
     {
         if (tmp->GetRegistered())
         {
-            Invite(*tmp, split);
+            Invite(*tmp, split, fd);
         }
     }
     else if (split[0] == "PRIVMSG")
     {
         if (tmp->GetRegistered())
         {
-            Privmsg(*tmp, split);
+            Privmsg(*tmp, split, fd);
         }
     }
     else if (split[0] == "TOPIC")
     {
         if (tmp->GetRegistered())
         {
-            Topic(*tmp, split);
+            Topic(*tmp, split, fd);
         }
     }
     else
@@ -316,8 +316,9 @@ Client* Server::GetClientByNickname(const std::string& nickname)
     return NULL;
 }
 
-void Server::Topic(Client &client, std::vector<std::string> str)
+void Server::Topic(Client &client, std::vector<std::string> str, int fd)
 {
+    (void)fd;
     if (str.size() < 2 || str[1].empty())
         return;
     std::cout << "\033[32mTOPIC command has been detected\033[0m" << std::endl;
@@ -377,11 +378,11 @@ void Server::Topic(Client &client, std::vector<std::string> str)
     }
 }
 
-void Server::Privmsg(Client &client, std::vector<std::string> str)
+void Server::Privmsg(Client &client, std::vector<std::string> str, int fd)
 {
+    (void)fd;
     if (str.size() < 3 || str[1].empty() || str[2].empty())
         return;
-
     std::cout << "\033[32mPRIVMSG command has been detected\033[0m" << std::endl;
     std::string message;
     for (size_t i = 2; i < str.size(); ++i)
@@ -419,8 +420,9 @@ void Server::Privmsg(Client &client, std::vector<std::string> str)
     }
 }
 
-void Server::Invite(Client &client, std::vector<std::string> str)
+void Server::Invite(Client &client, std::vector<std::string> str, int fd)
 {
+    (void)fd;
     if (str.size() < 3 || str[1].empty() || str[2].empty())
         return ;
     std::string channelsToInvit;
@@ -460,8 +462,9 @@ void Server::Invite(Client &client, std::vector<std::string> str)
     std::cout << "\033[32mINVITE command has been detected\033[0m" << std::endl;
 }
 
-void Server::Kick(Client &client, std::vector<std::string> str)
+void Server::Kick(Client &client, std::vector<std::string> str, int fd)
 {
+    (void)fd;
     if (str.size() < 3 || str[1].empty() || str[2].empty())
         return ;
     std::string channelsToKick;
@@ -796,7 +799,7 @@ void Server::ReceiveNewData(int fd)
     std::vector<std::string> split;
     if(bytes <= 0)
     {
-        std::cout << "Client <" << fd<<"> disconnected" << std::endl;
+        std::cout << "Client <" << fd <<"> disconnected" << std::endl;
         CleanClients(fd);
         close(fd);
     }
@@ -811,7 +814,9 @@ void Server::ReceiveNewData(int fd)
             this->ParseLaunch(split[i], fd);
         }
         if (split[0] != "QUIT")
+        {
             tmp_client->ClearBuffer();
+        }
     }
 };
 
