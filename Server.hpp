@@ -85,6 +85,10 @@ class Server
     void quit(Client &client, std::vector<std::string> &args, int fd);
     void mode(Client &client, std::vector<std::string> &args, int fd);
     void names(Client &client, std::vector<std::string> &args, int fd);
+    void part(Client &client, std::vector<std::string> &args, int fd);
+    void privmsg(Client &client, std::vector<std::string> &args, int fd);
+    void invite(Client &client, std::vector<std::string> &args, int fd);
+    void kick(Client &client, std::vector<std::string> &args, int fd);
 };
 
 #endif

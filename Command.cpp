@@ -22,44 +22,44 @@ void Server::nick(Client &client, std::vector<std::string> &args, int fd){
 
 // }
 
-// void Server::names(Client &client, std::vector<std::string> &args, int fd)
-// {
-//     std::vector<std::string> channelsToPrint;
-//     if(args.size() < 2 || args[1].empty() || args[1][0] == ' ')
-//         return ;
-//     if (args.size() > 1)
-//     {
-//         std::string str;
-//         std::stringstream ss(args[1]);
+void Server::names(Client &client, std::vector<std::string> &args, int fd)
+{
+    std::vector<std::string> channelToPrint;
+    if(args.size() < 2 || args[1].empty() || args[1][0] == ' ')
+        return ;
+    if (args.size() > 1)
+    {
+        std::string str;
+        std::stringstream ss(args[1]);
         
-//         while (std::getline(ss, str, ',')) 
-//         {
-//             if (!str.empty())
-//                 channelsToPrint.push_back(str);
-//         }
-//     }
-//     for (size_t i = 0; i < channelsToPrint.size(); ++i)
-//     {
-//         std::string channelName = channelsToPrint[i];
-//         if (CheckIfChannelExists(channelName))
-//         {
-//             Channel& channel = chan[channelName]; //besoin de join pour creer le channel
-//             std::vector<std::string> members = channel.GetMembers();
-//             std::string response = ":" + std::string("irc.server 353 ") + client.GetNickname() + " = " + channelName + " :";
-//             for (std::vector<std::string>::iterator it = members.begin(); it != members.end(); ++it)
-//             {
-//                 std::size_t index = std::distance(members.begin(), it);
-//                 if (channel.IsOperator(members[index]))
-//                     response += "@";
-//                 response += *it + " ";
-//             }
-//             response += "\r\n";
-//             send(fd, response.c_str(), response.length(), 0);
-//             std::string endResponse = ":" + std::string("irc.server 366 ") + client.GetNickname() + " " + channelName + " :End of /NAMES list.\r\n";
-//             send(fd, endResponse.c_str(), endResponse.length(), 0);
-//         }
-//     }
-// }
+        while (std::getline(ss, str, ',')) 
+        {
+            if (!str.empty())
+                channelToPrint.push_back(str);
+        }
+    }
+    for (size_t i = 0; i < channelToPrint.size(); ++i)
+    {
+        std::string channelName = channelToPrint[i];
+        if (CheckIfChannelExists(channelName))
+        {
+            Channel& channel = chan[channelName]; //besoin de join pour creer le channel
+            std::vector<std::string> members = channel.GetMembers();
+            std::string response = ":" + std::string("irc.server 353 ") + client.GetNickname() + " = " + channelName + " :";
+            for (std::vector<std::string>::iterator it = members.begin(); it != members.end(); ++it)
+            {
+                std::size_t index = std::distance(members.begin(), it);
+                if (channel.IsOperator(members[index]))
+                    response += "@";
+                response += *it + " ";
+            }
+            response += "\r\n";
+            send(fd, response.c_str(), response.length(), 0);
+            std::string endResponse = ":" + std::string("irc.server 366 ") + client.GetNickname() + " " + channelName + " :End of /NAMES list.\r\n";
+            send(fd, endResponse.c_str(), endResponse.length(), 0);
+        }
+    }
+}
 
 void Server::quit(Client &client, std::vector<std::string> &args, int fd)
 {
@@ -208,4 +208,212 @@ void Server::mode(Client &client, std::vector<std::string> &args, int fd)
     }
     msg += "\r\n";
     chan->Broadcast(msg, this->clients);
+}
+
+void Server::part(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    std::string subject;
+    if (args.size() < 2 || args[1].empty())
+        return;
+    std::cout << "\033[32mPART command has been detected\033[0m" << std::endl;
+    if (!CheckIfChannelExists(args[1]))
+    {
+        std::string error = ":" + std::string("irc.server 403 ")+ client.GetNickname() + " " + args[1] + " :No such channel\r\n";
+        client.sendMsg(error);
+        return;
+    }
+    Channel& channel = channel[args[1]];
+    if (!channel.HasMember(client.GetNickname()))
+    {
+        std::string error1 = ":" + std::string("irc.server 442 ") + client.GetNickname() + " " + args[1] + " :You're not on that channel\r\n";
+        client.sendMsg(error1);
+        return;
+    }
+    if (args.size() > 2)
+    {
+        for (size_t i = 2; i < args.size(); ++i)
+        {
+            subject += args[i];
+            if (i != args.size() - 1)
+                subject += " ";
+        }
+    }
+    std::string prefix = client.GetNickname() + "!" + client.GetUsername() + "@" + "localhost";
+    std::string partMsg;
+    if (args.size() > 2)
+        partMsg = ":" + prefix + " PART " + args[1] + " :" + subject + "\r\n";
+    else
+        partMsg = ":" + prefix + " PART " + args[1] + "\r\n";
+    std::cout << client.GetUsername() << std::endl;
+    channel.RemoveMember(client.GetNickname());
+    channel.Broadcast(partMsg, clients);
+    client.sendMsg(partMsg);
+}
+
+void Server::privmsg(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 3 || args[1].empty() || args[2].empty())
+        return;
+    std::cout << "\033[32mPRIVMSG command has been detected\033[0m" << std::endl;
+    std::string message;
+    for (size_t i = 2; i < args.size(); ++i)
+    {
+        message += args[i];
+        if (i != args.size() - 1)
+            message += " ";
+    }
+    std::string prefix = ":" + client.GetNickname() + "!" + client.GetUsername() + "@localhost";
+    std::string prefix2 = ":" + client.GetNickname();
+    std::string fullmsg = prefix + " PRIVMSG " + args[1] + " :" + message + "\r\n";
+    std::string fullmsg2 = prefix2 + " PRIVMSG " + args[1] + " :" + message + "\r\n";
+    if (args[1][0] == '#')
+    {
+        if (!CheckIfChannelExists(args[1]))
+        {
+            std::string error = ":" + std::string("irc.server 403 ")+ client.GetNickname() + " " + args[1] + " :No such channel\r\n";
+            client.sendMsg(error);
+            return;
+        }
+
+        Channel& channel = channel[args[1]];
+        channel.Broadcast2(fullmsg, clients, client.GetNickname());
+    }
+    else
+    {
+        Client* target = GetClientByNickname(args[1]);
+        if (!target)
+        {
+            std::string error = ":" + std::string("irc.server 401 ")+ client.GetNickname() + " " + args[1] + " :No such nick\r\n";
+            client.sendMsg(error);
+            return;
+        }
+        target->sendMsg(fullmsg2);
+    }
+}
+
+void Server::invite(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 3 || args[1].empty() || args[2].empty())
+        return ;
+    std::string channelToInvit;
+    std::string name;
+
+    name = args[2];
+    channelToInvit = args[1];
+    if (!CheckIfChannelExists(channelToInvit))
+    {
+        std::string error = ":" + std::string("irc.server 403 ") + client.GetNickname() + " " + channelToInvit + " :No such channel\r\n";
+        client.sendMsg(error);
+        return;
+    }
+    Channel& channel = channel[channelToInvit];
+    if (!(channel.HasMember(client.GetNickname())))
+    {
+        std::string error1 = ":" + std::string("irc.server 442 ") + client.GetNickname() + " " + channelToInvit + " :You're not on that channel\r\n";
+        client.sendMsg(error1);
+        return;
+    }
+   if (channel.HasMember(name))
+   {
+        std::string error2 = ":" + std::string("irc.server 443 ") + client.GetNickname() + name + " " + channelToInvit + " :is already on channel\r\n";
+        client.sendMsg(error2);
+        return;
+   }
+    Client* invitedClient = GetClientByNickname(name);
+    if (invitedClient)
+    {
+        channel.AddMemberInvite(name, invitedClient->GetFd());
+        std::string inviteMsg = ":" + client.GetNickname() + "!" + client.GetUsername() + "@" + "localhost" +
+        " INVITE " + name + " :" + channelToInvit + "\r\n";
+        invitedClient->sendMsg(inviteMsg);
+        std::string joinMsg = ":" + name + " JOIN " + channelToInvit + "\r\n";
+        channel.Broadcast(joinMsg, clients);
+    }
+    std::cout << "\033[32mINVITE command has been detected\033[0m" << std::endl;
+}
+
+void Server::kick(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 3 || args[1].empty() || args[2].empty())
+        return ;
+    std::string channelToKick;
+    std::string name;
+    std::string motif;
+
+    name = args[2];
+    channelToKick = args[1];
+    if (args.size() > 3)
+        motif = args[3];
+    else
+        motif = "banned from the channel";
+    if (!CheckIfChannelExists(channelToKick))
+    {
+        std::string error = ":" + std::string("irc.server 403 ") + client.GetNickname() + " " + channelToKick + " :No such channel\r\n";
+        client.sendMsg(error);
+        return;
+    }
+    Channel& channel = channel[channelToKick];
+    if (!(channel.IsOperator(client.GetNickname())))
+    {
+        std::string error2 = ":" + std::string("irc.server 482 ") + client.GetNickname() + " " + str[1] + " :You're not channel operator\r\n";
+        client.sendMsg(error2);
+        return;
+    }
+    if (!(channel.HasMember(name)))
+    {
+        std::string error2 = ":" + std::string("irc.server 441 ") + client.GetNickname() + " " + name + " " + str[1] + " :You're not channel operator\r\n";
+        client.sendMsg(error2);
+        return;
+    }
+    std::string prefix = client.GetNickname() + "!" + client.GetUsername() + "@localhost";
+    std::string kickMessage = ":" + prefix + " KICK " + channelToKick + " " + name + " :" + motif + "\r\n";
+    channel.Broadcast(kickMessage, clients);
+    channel.RemoveMember(name);
+
+    std::cout << "\033[32mKICK command has been detected\033[0m" << std::endl;
+}
+
+void Server::quit(Client &client, std::vector<std::string> &args, int fd)
+{
+    std::string reason;
+    if (args.size() > 1)
+    {
+        for (size_t i = 1; i < args.size(); ++i)
+        {
+            reason += args[i];
+            if (i != args.size() - 1)
+                reason += " ";
+        }
+        if (!reason.empty() && reason[0] == ':')
+            reason = reason.substr(1);
+    }
+    else
+        reason = "Client quit";
+    std::cout << "\033[32mQUIT command has been detected\033[0m" << std::endl;
+    std::cout << "Client <" << fd << "> disconnected (" << reason << ")" << std::endl;
+    std::string msg = client.GetNickname() + " disconnected (" + reason + ")\r\n";
+    for (std::map<std::string, Channel>::iterator it = channel.begin(); it != channel.end(); )
+    {
+        Channel& channel = it->second;
+        if (channel.HasMember(client.GetNickname()))
+        {
+            channel.RemoveMember(client.GetNickname());
+            channel.Broadcast(msg, clients);
+        }
+        if (channel.IsEmpty())
+        {
+            std::map<std::string, Channel>::iterator tmp = it;
+            ++it;
+            channel.erase(tmp); // Attention: erase retourne le nouvel itérateur
+        }
+        else
+            ++it;
+    }
+    CleanClient(fd);
+    close(fd);
+  
 }
