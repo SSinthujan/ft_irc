@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 19:50:29 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 01:36:28 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ Channel::Channel()
 
 Channel::Channel(std::string name)
     : channelName(name),
-      topic(""),
+      topic("null"),
       maxUsers(-1),
       roles(),
       members(),

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/28 23:11:50 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/29 02:06:39 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ void Server::ParseLaunch(std::string &str, int fd)
             send(tmp->GetFd(), response.c_str(), response.length(), 0);
         }
     }
-    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "END")
+    else if (split[0] == "CAP" && split.size() > 1 && split[1] == "END")
     {
         if (!(tmp->GetRegistered()) && (tmp->GetPass() && tmp->GetNick() && tmp->GetUser()))
         {
@@ -273,6 +273,13 @@ void Server::ParseLaunch(std::string &str, int fd)
             Privmsg(*tmp, split);
         }
     }
+    else if (split[0] == "TOPIC")
+    {
+        if (tmp->GetRegistered())
+        {
+            Topic(*tmp, split);
+        }
+    }
     else
     {
         std::cout << "Unknown command: " << split[0] << std::endl;
@@ -309,6 +316,66 @@ Client* Server::GetClientByNickname(const std::string& nickname)
     return NULL;
 }
 
+void Server::Topic(Client &client, std::vector<std::string> str)
+{
+    if (str.size() < 2 || str[1].empty())
+        return;
+    std::cout << "\033[32mTOPIC command has been detected\033[0m" << std::endl;
+    if (!CheckIfChannelExists(str[1]))
+    {
+        std::string error = ":" + std::string("irc.server 403 ")+ client.GetNickname() + " " + str[1] + " :No such channel\r\n";
+        client.sendMsg(error);
+        return;
+    }
+    std::string error1 = ":" + std::string("irc.server 442 ") + client.GetNickname() + " " + str[1] + " :You're not on that channel\r\n";
+    std::string error2 = ":" + std::string("irc.server 482 ") + client.GetNickname() + " " + str[1] + " :You're not channel operator\r\n";
+    std::string error3 = ":" + std::string("irc.server 331 ") + client.GetNickname() + " " + str[1] + " :No topic is set\r\n";
+    if (str.size() > 2)
+    {
+        std::string subject;
+        for (size_t i = 2; i < str.size(); ++i)
+        {
+            subject += str[i];
+            if (i != str.size() - 1)
+                subject += " ";
+        }
+        subject += "\r\n";
+        Channel& channel = channels[str[1]];
+        if (!channel.HasMember(client.GetNickname()))
+        {
+            client.sendMsg(error1);
+            return;
+        }
+        if (channel.IsTopicRestricted() == true)
+        {
+            if (channel.IsOperator(client.GetNickname()))
+            {
+                channel.SetTopic(subject);
+                std::string settopicMsg = ":" + client.GetNickname() + "!user@localhost TOPIC " + str[1] + " :" + subject;
+                channel.Broadcast(settopicMsg, clients);
+            }
+            else
+                client.sendMsg(error2);
+        }
+        else
+        {
+            channel.SetTopic(subject);
+            std::string settopicMsg = ":" + client.GetNickname() + "!user@localhost TOPIC " + str[1] + " :" + subject;
+            channel.Broadcast(settopicMsg, clients);
+        }
+    }
+    if (str.size() == 2)
+    {
+        Channel& channel = channels[str[1]];
+        if (channel.GetTopic() == "null")
+            client.sendMsg(error3);
+        else
+        {
+            std::string gettopicMsg = ":" + std::string("irc.server 332 ") + client.GetNickname() + " " + str[1] + " :" + channel.GetTopic() + "\r\n";
+            client.sendMsg(gettopicMsg);
+        }
+    }
+}
 void Server::Privmsg(Client &client, std::vector<std::string> str)
 {
     if (str.size() < 3 || str[1].empty() || str[2].empty())
