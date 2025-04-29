@@ -119,6 +119,25 @@ void Channel::Broadcast(const std::string &msg, const std::map<int, Client> &cli
     }
 }
 
+void Channel::Broadcast2(const std::string &msg, const std::map<int, Client> &clients, const std::string& sender)
+{
+    for (std::map<std::string, int>::const_iterator it = members.begin(); it != members.end(); ++it)
+    {
+        const std::string& nickname = it->first;
+        int fd = it->second;
+
+        // On ne renvoie pas au sender
+        if (nickname == sender)
+            continue;
+
+        std::map<int, Client>::const_iterator cli = clients.find(fd);
+        if (cli != clients.end())
+        {
+            cli->second.sendMsg(msg);
+        }
+    }
+}
+
 std::vector<std::string> Channel::GetMembers() const
 {
     std::vector<std::string> list;

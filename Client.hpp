@@ -35,7 +35,7 @@ class Client
         bool buser;
         bool nick;
     public:
-        Client(){nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
+        Client(){Fd = -1 ,nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
         
         int GetFd(){return Fd;};
         int GetPass(){return pass;};

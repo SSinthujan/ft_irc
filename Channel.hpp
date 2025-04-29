@@ -38,54 +38,54 @@ class Channel
     public:
             Channel(std::string name);
 
-           // === Informations générales
-           std::string& GetChannelName()  { return channelName; };
-           void SetChannelName(std::string &s) { channelName = s; };
-   
-           // === Gestion du topic
-           std::string GetTopic() { return topic; };
-           void SetTopic(std::string s) { topic = s; };
-           void SetTopicRestricted(bool b) { topicRestricted = b; };
-           bool IsTopicRestricted() const { return topicRestricted; };
-   
-           // === Gestion des membres
-           void AddMember(std::string &nickname);
-           void RemoveMember(const std::string &nickname);
-           bool HasMember(const std::string  &nickname);
-           std::vector<std::string> GetMembers() const;
-           bool IsFull() const;
-           void SetMaxUsers(int n) { maxUsers = n; };
-           bool IsEmpty() const;
-   
-           // === Gestion des opérateurs
-           int CheckRole(std::string name);
-           void SetOperator(std::string const &nickname);
-           void RemoveOperator(std::string const &nickname);
-           bool IsOperator(std::string const &nickname) const;
-           void AddOperator(const std::string &nickname) { roles[nickname] = 1; };
-   
-           // === Mode +i : gestion du mode sur invitation 
-           void SetInviteOnly() { inviteOnly = true; };
-           void RemoveInviteOnly() { inviteOnly = false; };
-           bool CheckInviteOnly() { return inviteOnly; };
-           void AddInvite(std::string const &nickname);
-           bool IsInvited(std::string const &nickname) const;
-           void RemoveInvite(std::string const &nickname);
-           void SetUserLimit(int limit) { maxUsers = limit; };
-            void RemoveUserLimit() { maxUsers = -1; };
-   
-           // === Mode +k : gestion de la clé (mot de passe)
-           void SetPassword(std::string s) { password = s; };
-           std::string GetPassword() { return password; };
-           void EnableKey(std::string const &pass);
-           void DisableKey();
-           bool IsKeyEnabled() const { return keyEnabled; };
-           void SetKey(const std::string &key) { password = key; keyEnabled = true; }
+            // === Informations générales
+            std::string& GetChannelName()  { return channelName; };
+            void SetChannelName(std::string &s) { channelName = s; };
+
+            // === Gestion du topic
+            std::string GetTopic() { return topic; };
+            void SetTopic(std::string s) { topic = s; };
+            void SetTopicRestricted(bool b) { topicRestricted = b; };
+            bool IsTopicRestricted() const { return topicRestricted; };
+
+            // === Gestion des membres
+            void AddMember(std::string &nickname);
+            void RemoveMember(const std::string &nickname);
+            bool HasMember(const std::string  &nickname);
+            std::vector<std::string> GetMembers() const;
+            bool IsFull() const;
+            void SetMaxUsers(int n) { maxUsers = n; };
+            bool IsEmpty() const;
+
+            // === Gestion des opérateurs
+            int CheckRole(std::string name);
+            void SetOperator(std::string const &nickname);
+            void RemoveOperator(std::string const &nickname);
+            bool IsOperator(std::string const &nickname) const;
+            void AddOperator(const std::string &nickname) { roles[nickname] = 1; };
+
+            // === Mode +i : gestion du mode sur invitation 
+            void SetInviteOnly() { inviteOnly = true; };
+            void RemoveInviteOnly() { inviteOnly = false; };
+            bool CheckInviteOnly() { return inviteOnly; };
+            void AddInvite(std::string const &nickname);
+            bool IsInvited(std::string const &nickname) const;
+            void RemoveInvite(std::string const &nickname);
+            void SetUserLimit(int limit) { maxUsers = limit; };
+                void RemoveUserLimit() { maxUsers = -1; };
+
+            // === Mode +k : gestion de la clé (mot de passe)
+            void SetPassword(std::string s) { password = s; };
+            std::string GetPassword() { return password; };
+            void EnableKey(std::string const &pass);
+            void DisableKey();
+            bool IsKeyEnabled() const { return keyEnabled; };
+            void SetKey(const std::string &key) { password = key; keyEnabled = true; }
             void RemoveKey() { password.clear(); keyEnabled = false; }
 
-           //msg
-           void Broadcast(const std::string &msg, const std::map<int, Client> &clients);
-
+            //msg
+            void Broadcast(const std::string &msg, const std::map<int, Client> &clients);
+            void Broadcast2(const std::string &msg, const std::map<int, Client> &clients, const std::string& sender);
 };
 
 #endif
