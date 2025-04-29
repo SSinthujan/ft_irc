@@ -32,58 +32,59 @@
 class Client;
 class Channel;
 
+class Server;
+
+typedef void (Server::*fct)(Client &, std::vector<std::string> &, int);
+
 class Server
 {
     private:
-        int Port;
-        int ServerSocketFD;
-        static bool Signal;
-        std::map<int, Client> clients;
-        std::vector<struct pollfd> fds;
-        std::map<std::string, Channel> channels;
-        std::string serverPassword;
-
-        std::string _portStr;
-        std::string _password;
-        bool quit_flag;
+    int Port;
+    int ServerSocketFD;
+    static bool Signal;
+    std::map<int, Client> clients;
+    std::vector<struct pollfd> fds;
+    std::map<std::string, Channel> channels;
+    std::map<std::string, fct> _cmd;
+    std::string serverPassword;
+    
+    std::string _portStr;
+    std::string _password;
+    bool quit_flag;
     
     public:
-        //StartServer 
-        Server();
-        void inputCheck(int ac, char **av);
-        void ServerSocket();
-        void ServerInit();
-        
-        //Client Calls
-        void AcceptNewClient();
-        void ReceiveNewData(int fd);
-
-        //Channel
-        bool CheckIfChannelExists(std::string);
-
-        //Signal
-        static void SignalHandler(int signum);
-
-        //Getters
-        Client* GetClient(int fd);
-        std::string GetPassword(){return serverPassword;};
-        Channel* GetChannel(const std::string& name);
-  
-        //Close
-        void CloseFds();
-        void CleanClient(int fds);
-
-        //Else
-        std::vector<std::string> SplitTmpBuffer(std::string);
-
-        //Cmds
-        void parseCmd(std::string &str, int client_fd);
-        void nick(Client &client, std::string &nick, int fd);
-        void join(Client &client ,std::vector<std::string> &str, int fd);
-        void quit(Client &client, std::vector<std::string> str, int fd);
-        void mode(Client *client, const std::vector<std::string> &split, int fd);
-        void names(Client &client, std::vector<std::string> str, int fd)
+    Server();
+    //StartServer #include av);
+    void ServerSocket();
+    void ServerInit();
+    void inputCheck(int ac, char **av);
+    
+    //Client Calls
+    void AcceptNewClient();
+    void ReceiveNewData(int fd);
+    
+    //Channel
+    bool CheckIfChannelExists(std::string);
+    
+    //Signal
+    static void SignalHandler(int signum);
+    
+    //Getters
+    Client* GetClient(int fd);
+    std::string GetPassword(){return serverPassword;};
+    Channel* GetChannel(const std::string& name);
+    
+    //Close
+    void CloseFds();
+    void CleanClient(int fds);
+    
+    //Cmds
+    void parseCmd(Client &client, std::string &str, int client_fd);
+    void nick(Client &client, std::vector<std::string> &args, int fd);
+    void join(Client &client, std::vector<std::string> &args, int fd);
+    void quit(Client &client, std::vector<std::string> &args, int fd);
+    void mode(Client &client, std::vector<std::string> &args, int fd);
+    void names(Client &client, std::vector<std::string> &args, int fd);
 };
-
 
 #endif

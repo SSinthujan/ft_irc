@@ -12,12 +12,6 @@
 
 #include "Channel.hpp"
 
-
-Channel::Channel()
-{
-
-}
-
 Channel::Channel(std::string name)
     : channelName(name),
       topic(""),
@@ -30,6 +24,7 @@ Channel::Channel(std::string name)
       keyEnabled(false),
       inviteOnly(false)
 {}
+
 // === Gestion des rôles (opérateurs) ===
 int Channel::CheckRole(std::string name)
 {

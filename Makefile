@@ -4,7 +4,7 @@ CC = c++
 
 FLAGS = -std=c++98 -g -MMD -Werror -Wextra -Wall 
 
-SRC = main.cpp Server.cpp Client.cpp Channel.cpp
+SRC = main.cpp Server.cpp Client.cpp Channel.cpp Command.cpp
 
 OBJ = $(SRC:.cpp=.o)
 DEP = $(SRC:.cpp=.d)
