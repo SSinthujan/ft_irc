@@ -36,7 +36,6 @@ class Channel
         bool inviteOnly;
 
     public:
-            Channel();
             Channel(std::string name);
 
            // === Informations générales

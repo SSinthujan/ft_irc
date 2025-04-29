@@ -16,23 +16,18 @@ Server::Server()
 {
     ServerSocketFD = -1;
     this->quit_flag = false;
-    _cmd["JOIN"] = &Server::join;
     // _cmd["CAP"] = &Server::cap;
     // _cmd["INVITE"] = &Server::invite;
+    // _cmd["JOIN"] = &Server::join;
     // _cmd["KICK"] = &Server::kick;
-    // _cmd["KILL"] = &Server::kill;
-    // _cmd["CAP"] = &Server::cap;
-    _cmd["NAMES"] = &Server::names;
-    // _cmd["NOTICE"] = &Server::notice;
+    // _cmd["NAMES"] = &Server::names;
+    _cmd["NICK"] = &Server::nick;
     _cmd["MODE"] = &Server::mode;
-    // _cmd["OPER"] = &Server::oper;
-    // _cmd["PART"] = &Server::part;
     // _cmd["PASS"] = &Server::pass;
     // _cmd["PING"] = &Server::ping;
     // _cmd["PRIVMSG"] = &Server::privmsg;
     _cmd["QUIT"] = &Server::quit;
     // _cmd["TOPIC"] = &Server::topic;
-    // _cmd["UNKNOWN"] = &Server::unknown;
     // _cmd["USER"] = &Server::user;
     // _cmd["WHO"] = &Server::who;
 }
@@ -111,7 +106,7 @@ void Server::SignalHandler(int signum)
 
 bool Server::CheckIfChannelExists(std::string str)
 {
-    return channels.find(str) != channels.end();
+    return chan.find(str) != chan.end();
 };
 
 void Server::parseCmd(Client &client,std::string &str, int client_fd){
@@ -145,8 +140,8 @@ void Server::parseCmd(Client &client,std::string &str, int client_fd){
 
 Channel* Server::GetChannel(const std::string& name) 
 {
-    std::map<std::string, Channel>::iterator it = channels.find(name);
-    if (it != channels.end())
+    std::map<std::string, Channel>::iterator it = chan.find(name);
+    if (it != chan.end())
         return &(it->second);
     return NULL;
 }

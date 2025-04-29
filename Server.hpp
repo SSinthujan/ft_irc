@@ -44,7 +44,7 @@ class Server
     static bool Signal;
     std::map<int, Client> clients;
     std::vector<struct pollfd> fds;
-    std::map<std::string, Channel> channels;
+    std::map<std::string, Channel> chan;
     std::map<std::string, fct> _cmd;
     std::string serverPassword;
     
