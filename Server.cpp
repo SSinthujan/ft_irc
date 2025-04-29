@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 19:24:56 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/30 01:36:06 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@ Server::Server()
     ServerSocketFD = -1;
     this->quit_flag = false;
     // _cmd["CAP"] = &Server::cap;
-    // _cmd["INVITE"] = &Server::invite;
-    // _cmd["JOIN"] = &Server::join;
+    _cmd["INVITE"] = &Server::invite;
+    _cmd["JOIN"] = &Server::join;
     _cmd["KICK"] = &Server::kick;
     _cmd["NAMES"] = &Server::names;
     _cmd["NICK"] = &Server::nick;
@@ -28,7 +28,7 @@ Server::Server()
     // _cmd["PING"] = &Server::ping;
     _cmd["PRIVMSG"] = &Server::privmsg;
     _cmd["QUIT"] = &Server::quit;
-    // _cmd["TOPIC"] = &Server::topic;
+    _cmd["TOPIC"] = &Server::topic;
     // _cmd["USER"] = &Server::user;
 }
 
@@ -54,6 +54,21 @@ void Server::inputCheck(int ac, char **av)
     Port = static_cast<int>(port);
 }
 
+std::vector<std::string> Server::SplitByComma(std::string str)
+{
+    std::vector<std::string> split;
+    size_t start = 0;
+    size_t end = str.find(',');
+    while (end != std::string::npos)
+    {
+        split.push_back(str.substr(start, end - start));
+        start = end + 1;
+        end = str.find(',', start);
+    }
+    split.push_back(str.substr(start));
+    return split;
+};
+
 Client *Server::GetClient(int fd)
 {
     for (size_t i = 0; i < this->clients.size(); i++)
@@ -63,6 +78,16 @@ Client *Server::GetClient(int fd)
     }
     return NULL;
 };
+
+Client* Server::GetClientByNickname(const std::string& nickname)
+{
+    for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+    {
+        if (it->second.GetNickname() == nickname)
+            return &(it->second);
+    }
+    return NULL;
+}
 
 void Server::CleanClient(int fd)
 {

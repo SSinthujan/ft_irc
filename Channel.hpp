@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 12:08:51 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 03:26:11 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/30 01:26:58 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class Channel
         bool inviteOnly;
 
     public:
+            Channel();
             Channel(std::string name);
 
             // === Informations générales
@@ -49,13 +50,14 @@ class Channel
             bool IsTopicRestricted() const { return topicRestricted; };
 
             // === Gestion des membres
-            void AddMember(std::string &nickname);
+            void AddMember(std::string &nickname, int fd);
             void RemoveMember(const std::string &nickname);
             bool HasMember(const std::string  &nickname);
             std::vector<std::string> GetMembers() const;
             bool IsFull() const;
             void SetMaxUsers(int n) { maxUsers = n; };
             bool IsEmpty() const;
+            void AddMemberInvite(std::string &nickname, int fd);
 
             // === Gestion des opérateurs
             int CheckRole(std::string name);

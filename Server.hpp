@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:14 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 19:02:12 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/30 01:34:31 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ class Server
     Client* GetClient(int fd);
     std::string GetPassword(){return serverPassword;};
     Channel* GetChannel(const std::string& name);
+    Client* GetClientByNickname(const std::string& nickname);
     
     //Close
     void CloseFds();
@@ -89,6 +90,9 @@ class Server
     void privmsg(Client &client, std::vector<std::string> &args, int fd);
     void invite(Client &client, std::vector<std::string> &args, int fd);
     void kick(Client &client, std::vector<std::string> &args, int fd);
+    void topic(Client &client, std::vector<std::string> &args, int fd);
+
+    std::vector<std::string> SplitByComma(std::string str);
 };
 
 #endif

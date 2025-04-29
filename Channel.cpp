@@ -6,11 +6,16 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/27 03:27:08 by almichel         ###   ########.fr       */
+/*   Updated: 2025/04/30 01:26:53 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
+
+Channel::Channel()
+{
+
+}
 
 Channel::Channel(std::string name)
     : channelName(name),
@@ -54,10 +59,15 @@ bool Channel::IsOperator(std::string const &nickname) const
 }
 
 // === Gestion des membres ===
-void Channel::AddMember(std::string &nickname)
+void Channel::AddMember(std::string &nickname, int fd)
 {
     if (members.size() < (size_t)maxUsers || maxUsers == -1)
-        members[nickname] = 1; // 1 = membre standard
+        members[nickname] = fd; // 1 = membre standard
+}
+
+void Channel::AddMemberInvite(std::string &nickname, int fd)
+{
+        members[nickname] = fd;
 }
 
 void Channel::RemoveMember(const std::string &nickname)
