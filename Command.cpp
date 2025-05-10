@@ -508,5 +508,105 @@ void Server::quit(Client &client, std::vector<std::string> &args, int fd)
     }
     CleanClient(fd);
     close(fd);
-  
+}
+
+void Server::cap(Client &client, std::vector<std::string> &args, int fd){
+    
+    if(str.empty())
+        return ;
+    std::vector<std::string> split = SplitCmd(str);
+    size_t sep = str.find_first_of(" \t\v");
+
+    Client *tmp = GetClient(fd);
+    if(sep != std::string::npos)
+        str = str.substr(sep);
+    if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
+    {
+        if (!(tmp->GetRegistered()))
+        {
+            std::cout <<"FD : " << fd << std::endl;
+            std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
+            send(tmp->GetFd(), response.c_str(), response.length(), 0);
+        }
+    }
+    else if (split[0] == "CAP" && split.size() > 1 && split[1] == "END")
+    {
+        if (!(tmp->GetRegistered()) && (tmp->GetPass() && tmp->GetNick() && tmp->GetUser()))
+        {
+            tmp->SetRegistered(true);
+            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
+            send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
+            
+            // Message 002 (RPL_YOURHOST)
+            std::string yourHost = ":irc.server 002 " + tmp->GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
+            send(tmp->GetFd(), yourHost.c_str(), yourHost.length(), 0);
+            
+            // Message 003 (RPL_CREATED)
+            std::string created = ":irc.server 003 " + tmp->GetNickname() + " :This server was created today\r\n";
+            send(tmp->GetFd(), created.c_str(), created.length(), 0);
+            
+            // Message 004 (RPL_MYINFO)
+            std::string myInfo = ":irc.server 004 " + tmp->GetNickname() + " irc.server 1.0 o o\r\n";
+            send(tmp->GetFd(), myInfo.c_str(), myInfo.length(), 0);
+            
+            // Message 375 (RPL_MOTDSTART)
+            std::string motdStart = ":irc.server 375 " + tmp->GetNickname() + " :- irc.server Message of the day - \r\n";
+            send(tmp->GetFd(), motdStart.c_str(), motdStart.length(), 0);
+            
+            // Message 372 (RPL_MOTD)
+            std::string motd = ":irc.server 372 " + tmp->GetNickname() + " :- Welcome to the IRC server\r\n";
+            send(tmp->GetFd(), motd.c_str(), motd.length(), 0);
+            
+            // Message 376 (RPL_ENDOFMOTD)
+            std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
+            send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
+        }
+    }
+    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
+    {
+        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
+        send(tmp->GetFd(), response.c_str(), response.length(), 0); 
+    }
+}
+
+void user(Client &client, std::vector<std::string> &args, int fd){
+    if(split[0] == "USER" && split.size() > 4)
+    {
+        if (!(tmp->GetUser()))
+        {
+            if (tmp->GetPass())
+            {
+                tmp->SetUser(split);
+                tmp->SetBuser(true);
+            }
+        }
+        else
+            std::cout << "Unknown command: " << split[0] << std::endl;
+        
+    }
+}
+
+void pass(Client &client, std::vector<std::string> &args, int fd){
+    if(split[0] == "PASS")
+    {
+        if(split.size() > 1 && split[1] != this->_password)
+        {
+            std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
+            send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
+        }
+        else
+            tmp->SetPass(true);
+    }
+}
+
+void ping(Client &client, std::vector<std::string> &args, int fd){
+    if(split[0] == "PING" && split.size() > 1)
+    {
+        if(tmp->GetRegistered())
+        {
+            std::string response = "PONG :" + split[1] + "\r\n";
+            send(tmp->GetFd(), response.c_str(), response.length(), 0);
+            std::cout << "\033[32mPING command has been detected\033[0m" << std::endl;
+        }
+    }
 }

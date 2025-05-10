@@ -91,7 +91,10 @@ class Server
     void invite(Client &client, std::vector<std::string> &args, int fd);
     void kick(Client &client, std::vector<std::string> &args, int fd);
     void topic(Client &client, std::vector<std::string> &args, int fd);
-
+    void cap(Client &client, std::vector<std::string> &args, int fd);
+    void user(Client &client, std::vector<std::string> &args, int fd);
+    void pass(Client &client, std::vector<std::string> &args, int fd);
+    void ping(Client &client, std::vector<std::string> &args, int fd);
     std::vector<std::string> SplitByComma(std::string str);
 };
 

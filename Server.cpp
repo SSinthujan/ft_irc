@@ -16,7 +16,7 @@ Server::Server()
 {
     ServerSocketFD = -1;
     this->quit_flag = false;
-    // _cmd["CAP"] = &Server::cap;
+    _cmd["CAP"] = &Server::cap;
     _cmd["INVITE"] = &Server::invite;
     _cmd["JOIN"] = &Server::join;
     _cmd["KICK"] = &Server::kick;
@@ -24,12 +24,12 @@ Server::Server()
     _cmd["NICK"] = &Server::nick;
     _cmd["MODE"] = &Server::mode;
     _cmd["PART"] = &Server::part;
-    // _cmd["PASS"] = &Server::pass;
-    // _cmd["PING"] = &Server::ping;
+    _cmd["PASS"] = &Server::pass;
+    _cmd["PING"] = &Server::ping;
     _cmd["PRIVMSG"] = &Server::privmsg;
     _cmd["QUIT"] = &Server::quit;
     _cmd["TOPIC"] = &Server::topic;
-    // _cmd["USER"] = &Server::user;
+    _cmd["USER"] = &Server::user;
 }
 
 void Server::inputCheck(int ac, char **av)
