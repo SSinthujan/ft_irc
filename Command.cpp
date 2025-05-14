@@ -510,103 +510,106 @@ void Server::quit(Client &client, std::vector<std::string> &args, int fd)
     close(fd);
 }
 
-void Server::cap(Client &client, std::vector<std::string> &args, int fd){
+void Server::cap(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 2 || args[1].empty())
+        return;
+    std::cout << "\033[32mCAP command has been detected\033[0m" << std::endl;
     
-    if(str.empty())
-        return ;
-    std::vector<std::string> split = SplitCmd(str);
-    size_t sep = str.find_first_of(" \t\v");
-
-    Client *tmp = GetClient(fd);
-    if(sep != std::string::npos)
-        str = str.substr(sep);
-    if(split[0] == "CAP" && split.size() > 1 && split[1] == "LS")
+    if (args[1] == "LS")
     {
-        if (!(tmp->GetRegistered()))
+        if (!(client.GetRegistered()))
         {
-            std::cout <<"FD : " << fd << std::endl;
             std::string response = ":irc.server CAP * LS :multi-prefix\r\n";
-            send(tmp->GetFd(), response.c_str(), response.length(), 0);
+            client.sendMsg(response);
         }
     }
-    else if (split[0] == "CAP" && split.size() > 1 && split[1] == "END")
+    else if (args[1] == "END")
     {
-        if (!(tmp->GetRegistered()) && (tmp->GetPass() && tmp->GetNick() && tmp->GetUser()))
+        if (!(client.GetRegistered()) && (client.GetPass() && client.GetNick() && client.GetUser()))
         {
-            tmp->SetRegistered(true);
-            std::string welcome = ":irc.server 001 " + tmp->GetNickname() + " :Welcome to the IRC server " + tmp->GetNickname() + "!" + tmp->GetUsername() + "@" + tmp->GetIpAddress() + "\r\n";
-            send(tmp->GetFd(), welcome.c_str(), welcome.length(), 0);
+            client.SetRegistered(true);
+            std::string welcome = ":irc.server 001 " + client.GetNickname() + " :Welcome to the IRC server " + client.GetNickname() + "!" + client.GetUsername() + "@" + client.GetIpAddress() + "\r\n";
+            client.sendMsg(welcome);
             
             // Message 002 (RPL_YOURHOST)
-            std::string yourHost = ":irc.server 002 " + tmp->GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
-            send(tmp->GetFd(), yourHost.c_str(), yourHost.length(), 0);
+            std::string yourHost = ":irc.server 002 " + client.GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
+            client.sendMsg(yourHost);
             
             // Message 003 (RPL_CREATED)
-            std::string created = ":irc.server 003 " + tmp->GetNickname() + " :This server was created today\r\n";
-            send(tmp->GetFd(), created.c_str(), created.length(), 0);
+            std::string created = ":irc.server 003 " + client.GetNickname() + " :This server was created today\r\n";
+            client.sendMsg(created);
             
             // Message 004 (RPL_MYINFO)
-            std::string myInfo = ":irc.server 004 " + tmp->GetNickname() + " irc.server 1.0 o o\r\n";
-            send(tmp->GetFd(), myInfo.c_str(), myInfo.length(), 0);
+            std::string myInfo = ":irc.server 004 " + client.GetNickname() + " irc.server 1.0 o o\r\n";
+            client.sendMsg(myInfo);
             
             // Message 375 (RPL_MOTDSTART)
-            std::string motdStart = ":irc.server 375 " + tmp->GetNickname() + " :- irc.server Message of the day - \r\n";
-            send(tmp->GetFd(), motdStart.c_str(), motdStart.length(), 0);
+            std::string motdStart = ":irc.server 375 " + client.GetNickname() + " :- irc.server Message of the day - \r\n";
+            client.sendMsg(motdStart);
             
             // Message 372 (RPL_MOTD)
-            std::string motd = ":irc.server 372 " + tmp->GetNickname() + " :- Welcome to the IRC server\r\n";
-            send(tmp->GetFd(), motd.c_str(), motd.length(), 0);
+            std::string motd = ":irc.server 372 " + client.GetNickname() + " :- Welcome to the IRC server\r\n";
+            client.sendMsg(motd);
             
             // Message 376 (RPL_ENDOFMOTD)
-            std::string endMotd = ":irc.server 376 " + tmp->GetNickname() + " :End of /MOTD command\r\n";
-            send(tmp->GetFd(), endMotd.c_str(), endMotd.length(), 0);
+            std::string endMotd = ":irc.server 376 " + client.GetNickname() + " :End of /MOTD command\r\n";
+            client.sendMsg(endMotd);
         }
     }
-    else if(split[0] == "CAP" && split.size() > 1 && split[1] == "REQ")
+    else if (args[1] == "REQ")
     {
-        std::string response = ":irc.server CAP " + tmp->GetNickname() + " ACK :multi-prefix\r\n";
-        send(tmp->GetFd(), response.c_str(), response.length(), 0); 
-    }
-}
-
-void user(Client &client, std::vector<std::string> &args, int fd){
-    if(split[0] == "USER" && split.size() > 4)
-    {
-        if (!(tmp->GetUser()))
-        {
-            if (tmp->GetPass())
-            {
-                tmp->SetUser(split);
-                tmp->SetBuser(true);
-            }
-        }
-        else
-            std::cout << "Unknown command: " << split[0] << std::endl;
-        
+        std::string response = ":irc.server CAP " + client.GetNickname() + " ACK :multi-prefix\r\n";
+        client.sendMsg(response); 
     }
 }
 
-void pass(Client &client, std::vector<std::string> &args, int fd){
-    if(split[0] == "PASS")
+void Server::user(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 4)
+        return;
+    std::cout << "\033[32mUSER command has been detected\033[0m" << std::endl;
+    
+    if (!(client.GetUser()))
     {
-        if(split.size() > 1 && split[1] != this->_password)
-        {
-            std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
-            send(tmp->GetFd(), errorMsg.c_str(), errorMsg.length(), 0);
-        }
-        else
-            tmp->SetPass(true);
+        if (client.GetPass())
+            client.SetUser(args);
+    }
+    else
+    {
+        std::string error = ":irc.server 462 " + client.GetNickname() + " :You may not reregister\r\n";
+        client.sendMsg(error);
     }
 }
 
-void ping(Client &client, std::vector<std::string> &args, int fd){
-    if(split[0] == "PING" && split.size() > 1)
+void Server::pass(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 2 || args[1].empty())
+        return;
+    std::cout << "\033[32mPASS command has been detected\033[0m" << std::endl;
+    
+    if (args[1] != this->_password)
     {
-        if(tmp->GetRegistered())
-        {
-            std::string response = "PONG :" + split[1] + "\r\n";
-            send(tmp->GetFd(), response.c_str(), response.length(), 0);
-            std::cout << "\033[32mPING command has been detected\033[0m" << std::endl;
-        }
+        std::string errorMsg = ":irc.server 464 * :Password incorrect\r\n";
+        client.sendMsg(errorMsg);
+    }
+    else
+        client.SetPass(true);
+}
+
+void Server::ping(Client &client, std::vector<std::string> &args, int fd)
+{
+    (void)fd;
+    if (args.size() < 2 || args[1].empty())
+        return;
+    std::cout << "\033[32mPING command has been detected\033[0m" << std::endl;
+    
+    if (client.GetRegistered())
+    {
+        std::string response = "PONG :" + args[1] + "\r\n";
+        client.sendMsg(response);
     }
 }

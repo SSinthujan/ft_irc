@@ -4,7 +4,7 @@
 
 < < CAP LS
 < < NICK GORG2
-< < USER ssitchsa ssitchsa irc.freenode.net :Darko Kojic
+< < USER ssitchsa ssitchsa irc.freenode.net :Almichel
 > > :*.freenode.net NOTICE * :*** Looking up your ident...
 > > :*.freenode.net NOTICE * :*** Looking up your hostname...
 > > :*.freenode.net CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl server-time setname userhost-in-names 
