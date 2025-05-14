@@ -20,10 +20,10 @@
 class Client
 {
     private:
-        int Fd;
+        int _fd;
         int num;
         std::string nickname;
-        std::string IpAddress;
+        std::string ipAddress;
         std::string true_buffer;
         std::string username;
         std::string mode;
@@ -35,9 +35,9 @@ class Client
         bool buser;
         bool nick;
     public:
-        Client(){Fd = -1 ,nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
+        Client(){_fd = -1 ,nick = false; buser = false ; end = false; pass = false; registered = false; nickname = "nickname"; username = "username"; mode = "mode"; realname = "realname"; true_buffer = "";};
         
-        int GetFd(){return Fd;};
+        int GetFd(){return _fd;};
         int GetPass(){return pass;};
         void SetPass(bool set){pass = set;};
         int GetNick(){return nick;};
@@ -52,14 +52,14 @@ class Client
         std::string GetBuffer(){return true_buffer;};
         void AddToBuffer(char *str){true_buffer += str;};
         void SetNickname(std::string s){nickname = s;};
-        void SetFd(int fd){Fd = fd;};
-        void SetIpAdress(std::string IpAdr){IpAddress = IpAdr;};
+        void SetFd(int fd){_fd = fd;};
+        void SetIpAdress(std::string IpAdr){ipAddress = IpAdr;};
         void ClearBuffer(){true_buffer.clear();};
         std::string GetNickname()const {return nickname;};
         void SetUser(std::vector<std::string>);
         int GetNum(){return num;};
         std::string GetUsername(){return username;};
-        std::string GetIpAddress(){return IpAddress;};
+        std::string GetipAddress(){return ipAddress;};
         void sendMsg(const std::string &msg) const;
         std::string get_command();
 

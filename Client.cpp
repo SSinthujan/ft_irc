@@ -14,20 +14,20 @@
 
 void Client::SetUser(std::vector<std::string> info)
 {
-    username = info[1];
-    mode = info[2];
-    realname = info[3];
-    if(info.size() > 4 && info[4][0] == ':')
+    username = info[0];
+    mode = info[1];
+    realname = info[2];
+    if(info.size() > 3 && info[3][0] == ':')
     {
-        realname = info[4].substr(1);
-        for(size_t i = 5; i < info.size(); i++)
+        realname = info[3].substr(1);
+        for(size_t i = 4; i < info.size(); i++)
             realname +=" " + info[i];
     }
 }
 
 void Client::sendMsg(const std::string &msg) const
 {
-    send(Fd, msg.c_str(), msg.length(), 0);
+    send(_fd, msg.c_str(), msg.length(), 0);
 }
 
 std::string Client::get_command() {

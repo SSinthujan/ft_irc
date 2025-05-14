@@ -91,7 +91,6 @@ Client* Server::GetClientByNickname(const std::string& nickname)
 
 void Server::CleanClient(int fd)
 {
-    /* 1. Remove the pollfd that matches fd */
     for (std::vector<struct pollfd>::iterator it = fds.begin();
          it != fds.end(); ++it)
     {
@@ -101,8 +100,9 @@ void Server::CleanClient(int fd)
             break;
         }
     }
-    /* 2. Remove the Client whose key is fd (O(log N)) */
-    clients.erase(fd); // does nothing if fd not present
+    std::map<int, Client>::iterator client_it = clients.find(fd);
+    if (client_it != clients.end())
+        clients.erase(client_it);
 }
 
 void Server::CloseFds()
