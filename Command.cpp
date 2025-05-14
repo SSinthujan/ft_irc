@@ -6,20 +6,61 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 23:33:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/30 01:38:09 by almichel         ###   ########.fr       */
+/*   Updated: 2025/05/15 01:41:15 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
 
-void Server::nick(Client &client, std::vector<std::string> &args, int fd){
+void Server::nick(Client &client, std::vector<std::string> &args, int fd)
+{
     (void)fd;
     if (args.size() < 1 || args[0].empty())
         return;
-    client.SetNickname(args[0]);
-    client.SetNick(true);  // Set the nick flag to true
+    // client.SetNickname(args[0]);
+    // client.SetNick(true);  // Set the nick flag to true
     // std::cout << "\033[32mNICK command has been detected\033[0m" << std::endl;
+
+    if (client.GetPass())
+        {
+            if (args[0][0] != '#')
+            {
+                bool nicknameInUse = false;
+                for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it)
+                {
+                    if (it->second.GetNickname() == args[0])
+                    {
+                        nicknameInUse = true;
+                        break;
+                    }
+                }
+
+                if (nicknameInUse)
+                {
+                    // Nickname déjà pris, envoie 433
+                    std::string response = ":irc.server 433 * " + args[0] + " :Nickname is already in use\r\n";
+                    send(client.GetFd(), response.c_str(), response.length(), 0);
+                }
+                else
+                {
+
+                    // Nickname libre, on le change
+                    std::string oldNick = client.GetNickname();
+                    client.SetNickname(args[0]);
+                    client.SetNick(true);
+                    std::string nickMsg = ":" + oldNick + "!user@host NICK :" + client.GetNickname() + "\r\n";
+                    send(client.GetFd(), nickMsg.c_str(), nickMsg.length(), 0);
+                    std::cout << ":" << client.GetNickname() << "!@ NICK " << client.GetNickname() << std::endl;
+                }
+            }
+            else
+            {
+                // Nick invalide (commence par #)
+                std::string response = ":irc.server 432 * " + args[0] + " :Erroneus nickname\r\n";
+                send(client.GetFd(), response.c_str(), response.length(), 0);
+            }
+        }
 }
 
 
