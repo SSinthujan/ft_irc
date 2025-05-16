@@ -6,20 +6,28 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 13:39:02 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/30 01:26:53 by almichel         ###   ########.fr       */
+/*   Updated: 2025/05/16 04:32:21 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Channel.hpp"
 
 Channel::Channel()
-{
-
-}
+: 
+topic("null"),
+maxUsers(-1),
+roles(),
+members(),
+invitedUsers(),
+password(""),
+topicRestricted(false),
+keyEnabled(false),
+inviteOnly(false)
+{}
 
 Channel::Channel(std::string name)
     : channelName(name),
-      topic(""),
+      topic("null"),
       maxUsers(-1),
       roles(),
       members(),

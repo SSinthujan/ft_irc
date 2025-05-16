@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/11 10:36:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/04/30 01:36:06 by almichel         ###   ########.fr       */
+/*   Updated: 2025/05/16 17:21:36 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,32 +134,42 @@ bool Server::CheckIfChannelExists(std::string str)
     return chan.find(str) != chan.end();
 };
 
-void Server::parseCmd(Client &client,std::string &str, int client_fd){
+void Server::parseCmd(Client &client, std::string &str, int client_fd) {
     std::string prefix;
     std::string cmd;
-    std::string suffix;
     std::vector<std::string> args;
+
     std::stringstream ss(str);
     std::string word;
 
-    if(str[0] == ':') 
-    {
+    // Si la ligne commence par ':', c'est un prefix (ex: :nickname)
+    if (str[0] == ':') {
         ss >> prefix;
         prefix = prefix.substr(1);
     }
+
     ss >> cmd;
-    while (ss >> word)
-    {
-        if (word[0] == ':')
-        {
-            suffix = word.substr(1);
+
+    bool foundSuffix = false;
+    while (ss >> word) {
+        if (!foundSuffix && word[0] == ':') {
+            // Commence par ":", donc tout ce qui suit est un seul argument
+            foundSuffix = true;
+            std::string suffix = word.substr(1);
+            std::string rest;
+            std::getline(ss, rest);
+            suffix += rest; // ajoute le reste de la ligne
+            args.push_back(suffix);
             break;
+        } else {
+            args.push_back(word);
         }
-        args.push_back(word);
     }
+
     fct func = _cmd[cmd];
     if (!func)
         return;
+
     (this->*func)(client, args, client_fd);
 }
 
