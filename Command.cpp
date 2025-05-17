@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 23:33:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/05/16 17:28:56 by almichel         ###   ########.fr       */
+/*   Updated: 2025/05/16 18:10:41 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -181,7 +181,7 @@ void Server::join(Client &client ,std::vector<std::string> &args, int fd)
         std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
         channel->Broadcast(joinMsg, clients);
 
-        if (channel->GetTopic() == "null")
+        if (channel->GetTopic() != "null")
             client.sendMsg(std::string("irc.server 332 ") + nickname + " " + channelName + " :" + channel->GetTopic() + "\r\n");
         else
             client.sendMsg(std::string("irc.server 331 ") + nickname + " " + channelName + " :No topic is set\r\n"); // RPL_NOTOPIC
