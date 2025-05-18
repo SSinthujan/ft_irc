@@ -165,7 +165,7 @@ void Server::parseCmd(Client &client, std::string &str, int client_fd) {
             args.push_back(word);
         }
     }
-
+    std::cout << "str= " << str << std::endl;
     fct func = _cmd[cmd];
     if (!func)
         return;

@@ -6,7 +6,7 @@
 /*   By: almichel <almichel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/28 23:33:18 by ssitchsa          #+#    #+#             */
-/*   Updated: 2025/05/16 18:10:41 by almichel         ###   ########.fr       */
+/*   Updated: 2025/05/16 17:28:56 by almichel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ void Server::nick(Client &client, std::vector<std::string> &args, int fd)
     // client.SetNickname(args[0]);
     // client.SetNick(true);  // Set the nick flag to true
     // std::cout << "\033[32mNICK command has been detected\033[0m" << std::endl;
-
     if (client.GetPass())
         {
             if (args[0][0] != '#')
@@ -181,7 +180,7 @@ void Server::join(Client &client ,std::vector<std::string> &args, int fd)
         std::string joinMsg = ":" + nickname + " JOIN " + channelName + "\r\n";
         channel->Broadcast(joinMsg, clients);
 
-        if (channel->GetTopic() != "null")
+        if (channel->GetTopic() == "null")
             client.sendMsg(std::string("irc.server 332 ") + nickname + " " + channelName + " :" + channel->GetTopic() + "\r\n");
         else
             client.sendMsg(std::string("irc.server 331 ") + nickname + " " + channelName + " :No topic is set\r\n"); // RPL_NOTOPIC
@@ -584,25 +583,25 @@ void Server::cap(Client &client, std::vector<std::string> &args, int fd)
             std::string yourHost = ":irc.server 002 " + client.GetNickname() + " :Your host is irc.server, running version 1.0\r\n";
             client.sendMsg(yourHost);
             
-            // Message 003 (RPL_CREATED)
-            std::string created = ":irc.server 003 " + client.GetNickname() + " :This server was created today\r\n";
-            client.sendMsg(created);
+            // // Message 003 (RPL_CREATED)
+            // std::string created = ":irc.server 003 " + client.GetNickname() + " :This server was created today\r\n";
+            // client.sendMsg(created);
             
-            // Message 004 (RPL_MYINFO)
-            std::string myInfo = ":irc.server 004 " + client.GetNickname() + " irc.server 1.0 o o\r\n";
-            client.sendMsg(myInfo);
+            // // Message 004 (RPL_MYINFO)
+            // std::string myInfo = ":irc.server 004 " + client.GetNickname() + " irc.server 1.0 o o\r\n";
+            // client.sendMsg(myInfo);
             
-            // Message 375 (RPL_MOTDSTART)
-            std::string motdStart = ":irc.server 375 " + client.GetNickname() + " :- irc.server Message of the day - \r\n";
-            client.sendMsg(motdStart);
+            // // Message 375 (RPL_MOTDSTART)
+            // std::string motdStart = ":irc.server 375 " + client.GetNickname() + " :- irc.server Message of the day - \r\n";
+            // client.sendMsg(motdStart);
             
             // Message 372 (RPL_MOTD)
-            std::string motd = ":irc.server 372 " + client.GetNickname() + " :- Welcome to the IRC server\r\n";
-            client.sendMsg(motd);
+            // std::string motd = ":irc.server 372 " + client.GetNickname() + " :- Welcome to the IRC server\r\n";
+            // client.sendMsg(motd);
             
-            // Message 376 (RPL_ENDOFMOTD)
-            std::string endMotd = ":irc.server 376 " + client.GetNickname() + " :End of /MOTD command\r\n";
-            client.sendMsg(endMotd);
+            // // Message 376 (RPL_ENDOFMOTD)
+            // std::string endMotd = ":irc.server 376 " + client.GetNickname() + " :End of /MOTD command\r\n";
+            // client.sendMsg(endMotd);
         }
     }
     else if (args[0] == "REQ")
